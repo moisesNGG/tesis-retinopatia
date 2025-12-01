@@ -2,24 +2,28 @@ import React from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
+import { Layout } from "./components/Layout";
+import { Home } from "./pages/Home";
+import { Model } from "./pages/Model";
+import { Process } from "./pages/Process";
+import { Admin } from "./pages/Admin";
 
 // URL del backend
-export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 export const API_URL = `${BACKEND_URL}/api`;
 
 function App() {
   return (
-    <div className="App min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="App min-h-screen bg-slate-50">
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={
-            <div className="flex items-center justify-center min-h-screen">
-              <div className="text-center">
-                <h1 className="text-6xl font-bold mb-4">Hola mundo!</h1>
-              </div>
-            </div>
-          } />
-        </Routes>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/modelo" element={<Model />} />
+            <Route path="/proceso" element={<Process />} />
+            <Route path="/admin" element={<Admin />} />
+          </Routes>
+        </Layout>
       </BrowserRouter>
 
       <Toaster

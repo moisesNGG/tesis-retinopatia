@@ -23,16 +23,144 @@ db = client[os.environ['DB_NAME']]
 app = FastAPI(
     title="Mi API",
     description="API Backend",
+from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File
+from dotenv import load_dotenv
+from starlette.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
+import os
+import logging
+from pathlib import Path
+from pydantic import BaseModel, Field
+from typing import List, Optional
+import uuid
+from datetime import datetime, timezone
+import shutil
+
+# Configuración del entorno
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+# Conexión a MongoDB
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
+
+# Crear la aplicación principal
+app = FastAPI(
+    title="Mi API",
+    description="API Backend",
     version="1.0.0"
 )
 
 # Router con prefijo /api
 api_router = APIRouter(prefix="/api")
 
+
 # MODELOS PYDANTIC
-# Define aquí tus modelos de datos
+class PageSection(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    content: str
+    image_url: Optional[str] = None
+
+class Page(BaseModel):
+    slug: str
+    title: str
+    sections: List[PageSection]
+
+class DiagnosisRequest(BaseModel):
+    image_url: str
+
+class DiagnosisResponse(BaseModel):
+    id: str
+    image_url: str
+    has_disease: bool
+    confidence: float
+    timestamp: datetime
 
 # RUTAS DE LA API
+
+@api_router.get("/pages/{slug}", response_model=Page)
+async def get_page(slug: str):
+    page = await db.pages.find_one({"slug": slug})
+    if page:
+        return page
+    
+    # Default content if not found (Seed data)
+    default_page = {
+        "slug": slug,
+        "title": slug.capitalize(),
+        "sections": []
+    }
+    if slug == "home":
+        default_page["title"] = "Inicio"
+        default_page["sections"] = [
+            {
+                "id": "1",
+                "title": "Bienvenido a RinoDetect",
+                "content": "Una herramienta avanzada para la detección temprana de rinopatía diabética utilizando inteligencia artificial.",
+                "image_url": "https://placehold.co/600x400?text=Medical+AI"
+            }
+        ]
+    elif slug == "modelo":
+        default_page["title"] = "Nuestro Modelo"
+        default_page["sections"] = [
+            {
+                "id": "1",
+                "title": "Red Neuronal Convolucional",
+                "content": "Utilizamos una arquitectura de última generación entrenada con miles de imágenes de fondo de ojo.",
+                "image_url": "https://placehold.co/600x400?text=Neural+Network"
+            }
+        ]
+    
+    # Save default to DB so it exists for editing
+    await db.pages.insert_one(default_page)
+    return default_page
+
+@api_router.put("/pages/{slug}", response_model=Page)
+async def update_page(slug: str, page_data: Page):
+    if slug != page_data.slug:
+        raise HTTPException(status_code=400, detail="Slug mismatch")
+    
+    await db.pages.replace_one({"slug": slug}, page_data.dict(), upsert=True)
+    return page_data
+
+@api_router.post("/diagnose", response_model=DiagnosisResponse)
+async def diagnose(request: DiagnosisRequest):
+    # MOCK AI MODEL
+    # In a real scenario, this would load the model and predict
+    import random
+    has_disease = random.choice([True, False])
+    confidence = random.uniform(0.85, 0.99)
+    
+    diagnosis = {
+        "id": str(uuid.uuid4()),
+        "image_url": request.image_url,
+        "has_disease": has_disease,
+        "confidence": confidence,
+        "timestamp": datetime.now(timezone.utc)
+    }
+    
+    await db.diagnoses.insert_one(diagnosis)
+    return diagnosis
+
+UPLOAD_DIR = ROOT_DIR / "static" / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+@api_router.post("/upload")
+async def upload_image(file: UploadFile = File(...)):
+    file_ext = file.filename.split(".")[-1]
+    filename = f"{uuid.uuid4()}.{file_ext}"
+    file_path = UPLOAD_DIR / filename
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    # Construct URL (assuming local dev)
+    # In production, this should be an S3 URL or similar
+    # For now we serve via the static mount
+    return {"url": f"/static/uploads/{filename}"}
+
 @api_router.get("/")
 async def root():
     return {
@@ -42,6 +170,12 @@ async def root():
 
 # Incluir el router en la app
 app.include_router(api_router)
+
+# Mount static files for uploads
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+app.mount("/static", StaticFiles(directory=str(ROOT_DIR / "static")), name="static")
 
 # Configurar CORS
 app.add_middleware(
@@ -53,24 +187,24 @@ app.add_middleware(
 )
 
 # Servir archivos estáticos del frontend (para producción)
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-
+# Note: We already mounted /static above for uploads, so we need to be careful with the frontend static files.
+# Usually frontend build has its own 'static' folder. 
+# Let's mount frontend assets at root but exclude /api and /static (uploads)
 frontend_build_dir = ROOT_DIR.parent / "frontend" / "build"
-if frontend_build_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(frontend_build_dir / "static")), name="static")
 
-    @app.get("/{full_path:path}")
-    async def serve_frontend(full_path: str):
-        """Servir el frontend de React en producción"""
-        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
-            return None
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    """Servir el frontend de React en producción"""
+    if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi.json") or full_path.startswith("static/"):
+        return None
 
+    if frontend_build_dir.exists():
         file_path = frontend_build_dir / full_path
         if file_path.is_file():
             return FileResponse(file_path)
-
         return FileResponse(frontend_build_dir / "index.html")
+    
+    return {"message": "Frontend not built"}
 
 # Configurar logging
 logging.basicConfig(
