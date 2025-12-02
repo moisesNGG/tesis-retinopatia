@@ -1,6 +1,22 @@
-from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+"""
+🚀 SERVIDOR BACKEND - PROYECTO DEFAULT 🚀
+
+Este archivo contiene tu servidor FastAPI básico con MongoDB.
+Aquí puedes agregar tus endpoints y lógica de negocio.
+
+📝 INSTRUCCIONES:
+1. Los endpoints deben tener el prefijo /api (ej: /api/usuarios)
+2. Usa los modelos Pydantic para validar datos
+3. Conecta con MongoDB usando la variable 'db'
+4. Agrega tus rutas al api_router
+
+💡 EJEMPLOS DE USO:
+- GET /api/ -> Mensaje de bienvenida
+- POST /api/mensaje -> Crear un mensaje
+- GET /api/mensajes -> Obtener todos los mensajes
+"""
+
+from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -11,148 +27,103 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
-import shutil
 
 # Configuración del entorno
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Configurar logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
 # Conexión a MongoDB
-mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
-db_name = os.environ.get('DB_NAME', 'rinopatia_db')
-db = client[db_name]
+db = client[os.environ['DB_NAME']]
 
 # Crear la aplicación principal
 app = FastAPI(
-    title="RinoDetect API",
-    description="API Backend para detección de rinopatía",
+    title="🚀 Mi API Proyecto Default",
+    description="API básica para empezar tu proyecto",
     version="1.0.0"
 )
 
-# Router con prefijo /api
+# Router con prefijo /api (IMPORTANTE: todos los endpoints deben usar este prefijo)
 api_router = APIRouter(prefix="/api")
 
-# MODELOS PYDANTIC
-class PageSection(BaseModel):
+# 📋 MODELOS PYDANTIC - Define aquí tus estructuras de datos
+class MensajeCreate(BaseModel):
+    """Modelo para crear un nuevo mensaje"""
+    texto: str
+    autor: str
+
+class Mensaje(BaseModel):
+    """Modelo completo del mensaje"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    title: str
-    content: str
-    image_url: Optional[str] = None
+    texto: str
+    autor: str
+    fecha_creacion: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-class Page(BaseModel):
-    slug: str
-    title: str
-    sections: List[PageSection]
-
-class DiagnosisRequest(BaseModel):
-    image_url: str
-
-class DiagnosisResponse(BaseModel):
-    id: str
-    image_url: str
-    has_disease: bool
-    confidence: float
-    timestamp: datetime
-
-# RUTAS DE LA API
-
-@api_router.get("/pages/{slug}", response_model=Page)
-async def get_page(slug: str):
-    page = await db.pages.find_one({"slug": slug})
-    if page:
-        return page
-    
-    # Default content if not found (Seed data)
-    default_page = {
-        "slug": slug,
-        "title": slug.capitalize(),
-        "sections": []
-    }
-    if slug == "home":
-        default_page["title"] = "Inicio"
-        default_page["sections"] = [
-            {
-                "id": "1",
-                "title": "Bienvenido a RinoDetect",
-                "content": "Una herramienta avanzada para la detección temprana de rinopatía diabética utilizando inteligencia artificial.",
-                "image_url": "https://placehold.co/600x400?text=Medical+AI"
-            }
-        ]
-    elif slug == "modelo":
-        default_page["title"] = "Nuestro Modelo"
-        default_page["sections"] = [
-            {
-                "id": "1",
-                "title": "Red Neuronal Convolucional",
-                "content": "Utilizamos una arquitectura de última generación entrenada con miles de imágenes de fondo de ojo.",
-                "image_url": "https://placehold.co/600x400?text=Neural+Network"
-            }
-        ]
-    
-    # Save default to DB so it exists for editing
-    await db.pages.insert_one(default_page)
-    return default_page
-
-@api_router.put("/pages/{slug}", response_model=Page)
-async def update_page(slug: str, page_data: Page):
-    if slug != page_data.slug:
-        raise HTTPException(status_code=400, detail="Slug mismatch")
-    
-    await db.pages.replace_one({"slug": slug}, page_data.dict(), upsert=True)
-    return page_data
-
-@api_router.post("/diagnose", response_model=DiagnosisResponse)
-async def diagnose(request: DiagnosisRequest):
-    # MOCK AI MODEL
-    import random
-    has_disease = random.choice([True, False])
-    confidence = random.uniform(0.85, 0.99)
-    
-    diagnosis = {
-        "id": str(uuid.uuid4()),
-        "image_url": request.image_url,
-        "has_disease": has_disease,
-        "confidence": confidence,
-        "timestamp": datetime.now(timezone.utc)
-    }
-    
-    await db.diagnoses.insert_one(diagnosis)
-    return diagnosis
-
-UPLOAD_DIR = ROOT_DIR / "static" / "uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
-@api_router.post("/upload")
-async def upload_image(file: UploadFile = File(...)):
-    file_ext = file.filename.split(".")[-1]
-    filename = f"{uuid.uuid4()}.{file_ext}"
-    file_path = UPLOAD_DIR / filename
-    
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-        
-    return {"url": f"/static/uploads/{filename}"}
+# 🛣️ RUTAS DE LA API - Agrega aquí tus endpoints
 
 @api_router.get("/")
-async def root():
+async def raiz():
+    """🏠 Endpoint principal - Mensaje de bienvenida"""
     return {
-        "message": "API funcionando",
-        "status": "ok"
+        "mensaje": "¡Hola Mundo! 🌍",
+        "estado": "funcionando",
+        "version": "1.0.0",
+        "instrucciones": "Usa /docs para ver la documentación completa"
     }
 
-# Incluir el router en la app
-app.include_router(api_router)
+@api_router.get("/saludo/{nombre}")
+async def saludar(nombre: str):
+    """👋 Saludo personalizado"""
+    return {
+        "mensaje": f"¡Hola {nombre}! 🎉",
+        "fecha": datetime.now(timezone.utc).isoformat()
+    }
 
-# Mount static files for uploads
-app.mount("/static", StaticFiles(directory=str(ROOT_DIR / "static")), name="static")
+@api_router.post("/mensaje", response_model=Mensaje)
+async def crear_mensaje(mensaje_data: MensajeCreate):
+    """📝 Crear un nuevo mensaje en la base de datos"""
+    try:
+        # Crear el objeto mensaje
+        mensaje_dict = mensaje_data.dict()
+        mensaje_obj = Mensaje(**mensaje_dict)
+        
+        # Guardar en MongoDB
+        resultado = await db.mensajes.insert_one(mensaje_obj.dict())
+        
+        if resultado.inserted_id:
+            return mensaje_obj
+        else:
+            raise HTTPException(status_code=500, detail="Error al guardar el mensaje")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@api_router.get("/mensajes", response_model=List[Mensaje])
+async def obtener_mensajes():
+    """📋 Obtener todos los mensajes"""
+    try:
+        mensajes = await db.mensajes.find().to_list(length=100)
+        return [Mensaje(**mensaje) for mensaje in mensajes]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@api_router.delete("/mensajes")
+async def limpiar_mensajes():
+    """🗑️ Limpiar todos los mensajes (útil para testing)"""
+    try:
+        resultado = await db.mensajes.delete_many({})
+        return {
+            "mensaje": "Mensajes eliminados",
+            "cantidad_eliminada": resultado.deleted_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+# 🔧 CONFIGURACIÓN DE LA APLICACIÓN
+
+# Incluir el router en la app principal
+app.include_router(api_router)
 
 # Configurar CORS
 app.add_middleware(
@@ -163,29 +134,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Servir archivos estáticos del frontend (para producción)
-frontend_build_dir = ROOT_DIR.parent / "frontend" / "build"
-
-@app.get("/{full_path:path}")
-async def serve_frontend(full_path: str):
-    """Servir el frontend de React en producción"""
-    if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi.json") or full_path.startswith("static/"):
-        return None
-
-    if frontend_build_dir.exists():
-        file_path = frontend_build_dir / full_path
-        if file_path.is_file():
-            return FileResponse(file_path)
-        return FileResponse(frontend_build_dir / "index.html")
-    
-    return {"message": "Frontend not built"}
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("Servidor iniciado")
-    logger.info(f"Conectado a MongoDB: {mongo_url}")
+    """🚀 Evento al iniciar la aplicación"""
+    logger.info("🚀 Servidor iniciado correctamente!")
+    logger.info(f"📡 Conectado a MongoDB: {mongo_url}")
+    logger.info("📚 Documentación disponible en: /docs")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    """🔌 Cerrar conexión al apagar"""
     client.close()
-    logger.info("Conexión a MongoDB cerrada")
+    logger.info("🔌 Conexión a MongoDB cerrada")
+
+# 📚 CÓMO AGREGAR NUEVOS ENDPOINTS:
+"""
+1. Define tu modelo Pydantic arriba (si necesitas)
+2. Crea tu función con @api_router.get/post/put/delete
+3. Usa async def para funciones asíncronas
+4. Accede a la base de datos con 'db.tu_coleccion'
+5. Reinicia el servidor si agregaste nuevos imports
+
+Ejemplo:
+@api_router.get("/usuarios")
+async def obtener_usuarios():
+    usuarios = await db.usuarios.find().to_list(length=100)
+    return usuarios
+"""
