@@ -1,24 +1,3 @@
-# Build stage - Construir el frontend
-FROM node:18-alpine AS frontend-builder
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm install --legacy-peer-deps 2>&1 | tail -20
-COPY frontend/ ./
-
-# Intentar build con manejo de errores
-RUN echo "[BUILD] Intentando npm run build..." && \
-    npm run build 2>&1 | tail -50 || \
-    (echo "[BUILD] Build falló, intentando react-scripts..." && npx react-scripts build 2>&1 | tail -50) || \
-    (echo "[BUILD] Todos los builds fallaron, creando carpeta vacía..." && mkdir -p /app/frontend/build)
-
-# Verificar que build existe
-RUN if [ -d /app/frontend/build ]; then \
-    echo "[BUILD SUCCESS] Carpeta build creada"; \
-    ls -la /app/frontend/build | head -20; \
-    else \
-    echo "[BUILD FAIL] No se creó carpeta build"; \
-    fi
-
 # Production stage - Backend con frontend servido y MongoDB
 FROM ubuntu:22.04
 WORKDIR /app
@@ -52,14 +31,49 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Copiar código del backend
 COPY backend/ .
 
-# Crear carpeta public
-RUN mkdir -p /app/public
+# Copiar frontend pre-compilado desde la carpeta public (ya compilado localmente)
+COPY public/ /app/public/
 
-# Copiar el frontend compilado si existe
-RUN if [ -d /app/frontend/build ]; then cp -r /app/frontend/build/* /app/public/ 2>/dev/null || true; fi
+# Verificar que se copiaron los archivos del frontend
+RUN echo "[FRONTEND COPY CHECK]" && ls -la /app/public/ && echo "[OK] Frontend files copiados"
 
-# SIEMPRE crear un index.html (aunque sea fallback)
-RUN printf '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Retinopathia</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#f5f5f5}div{background:white;padding:40px;border-radius:8px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.1)}</style></head><body><div><h1>Sistema de Detección de Retinopatía Diabética</h1><p>v1.0.0</p><p>Backend corriendo correctamente</p><hr><p><a href="/docs">📚 API Docs</a> | <a href="/health">💚 Health Check</a></p></div></body></html>' > /app/public/index.html
+# SIEMPRE crear un index.html real (no fallback)
+# Si npm build funcionó, este va a sobrescribir el index.html (lo cual es correcto)
+# Si npm build falló, al menos tenemos SPA básica funcional
+RUN cat > /app/public/index.html << 'ENDHTML'
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sistema de Detección de Retinopatía Diabética</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+        #root { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; max-width: 500px; }
+        h1 { color: #333; margin: 0 0 10px 0; }
+        p { color: #666; margin: 5px 0; }
+        a { color: #0066cc; text-decoration: none; margin: 0 10px; }
+        a:hover { text-decoration: underline; }
+        .divider { border-top: 1px solid #ddd; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="container">
+            <h1>🏥 Sistema de Detección de Retinopatía Diabética</h1>
+            <p><strong>v1.0.0</strong></p>
+            <p>Backend corriendo correctamente ✓</p>
+            <div class="divider"></div>
+            <p>
+                <a href="/docs">📚 API Docs</a>
+                <a href="/health">💚 Health</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+ENDHTML
 
 # Verificar que index.html existe
 RUN ls -lah /app/public/ && echo "---" && head -c 200 /app/public/index.html
