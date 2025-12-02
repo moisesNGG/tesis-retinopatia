@@ -65,13 +65,25 @@ stdout_logfile=/var/log/supervisor/mongodb.out.log
 user=mongodb
 
 [program:fastapi]
-command=python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+command=/bin/bash -c "python3 -m uvicorn app.main:app --host 0.0.0.0 --port $${PORT:-8000}"
 directory=/app
 autostart=true
 autorestart=true
 stderr_logfile=/var/log/supervisor/fastapi.err.log
 stdout_logfile=/var/log/supervisor/fastapi.out.log
+environment=PORT=8000
 EOF
+
+# Crear script de inicio
+RUN cat > /entrypoint.sh << 'EOF'
+#!/bin/bash
+set -e
+export PORT=${PORT:-8000}
+export MONGODB_URI=${MONGODB_URI:-mongodb://127.0.0.1:27017}
+export MONGODB_DB_NAME=${MONGODB_DB_NAME:-retinopatia_db}
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/services.conf
+EOF
+chmod +x /entrypoint.sh
 
 # Exponer puerto
 EXPOSE 8000
@@ -81,4 +93,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Comando para iniciar supervisor (que gestiona MongoDB y FastAPI)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/services.conf"]
+CMD ["/entrypoint.sh"]
