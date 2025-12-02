@@ -24,10 +24,10 @@ const Header = () => {
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-base text-gray-900 leading-none">
-                RetinopatíaIA
+                [Tu Marca Aquí]
               </span>
               <span className="text-[10px] text-gray-500 leading-none">
-                Detección Inteligente
+                Personalizable
               </span>
             </div>
           </Link>
