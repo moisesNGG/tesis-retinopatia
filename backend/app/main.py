@@ -1,8 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from app.core.config import settings
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.routes import auth, pages, prediction
+from pathlib import Path
+import os
 
 # Crear instancia de FastAPI
 app = FastAPI(
@@ -48,6 +52,32 @@ async def root():
         "docs": "/docs",
         "health": "/health"
     }
+
+@app.get("/health")
+async def health():
+    """Health check endpoint"""
+    return {"status": "healthy"}
+
+# Servir archivos estáticos del frontend
+PUBLIC_DIR = Path(__file__).parent.parent.parent / "public"
+
+if PUBLIC_DIR.exists():
+    # Montar la carpeta public como raíz de archivos estáticos
+    app.mount("/static", StaticFiles(directory=str(PUBLIC_DIR)), name="static")
+    
+    # SPA fallback - servir index.html para cualquier ruta no encontrada
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Servir la aplicación React (SPA)"""
+        # No servir archivos estáticos que ya están en /static
+        if full_path.startswith("api/"):
+            raise Exception("Not found")
+        
+        index_file = PUBLIC_DIR / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+        
+        return {"error": "Frontend not built. Run npm run build in frontend folder."}
 
 @app.get("/health")
 async def health_check():
