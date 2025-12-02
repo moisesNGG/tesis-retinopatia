@@ -3,7 +3,8 @@
  * CONECTADO AL BACKEND REAL
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api';
+// Usar window.location.origin para producción, o variable de entorno si está disponible
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || `${window.location.origin}/api`;
 
 // Helper para hacer requests
 const fetchWithAuth = async (url, options = {}) => {
@@ -84,7 +85,8 @@ export const predictionAPI = {
     const formData = new FormData();
     formData.append('image', imageFile);
 
-    const AI_MODEL_URL = process.env.REACT_APP_AI_MODEL_URL || 'http://localhost:8000/api/predict';
+    // Usar window.location.origin para producción
+    const AI_MODEL_URL = process.env.REACT_APP_AI_MODEL_URL || `${window.location.origin}/api/predict`;
 
     const response = await fetch(AI_MODEL_URL, {
       method: 'POST',
