@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { uploadImage, diagnoseImage } from '../api';
-import { Upload, CheckCircle, AlertCircle, Loader2, FileImage } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 
