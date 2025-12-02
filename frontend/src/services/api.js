@@ -3,11 +3,18 @@
  * CONECTADO AL BACKEND REAL
  */
 
-// Usar window.location.origin para producción, o variable de entorno si está disponible
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || `${window.location.origin}/api`;
+// IMPORTANTE: Siempre usar window.location.origin en producción
+// process.env.REACT_APP_API_BASE_URL solo para desarrollo local
+const API_BASE_URL = (
+  typeof window !== 'undefined' && 
+  window.location.hostname !== 'localhost' &&
+  window.location.hostname !== '127.0.0.1'
+) 
+  ? `${window.location.origin}/api`  // Producción: usar URL actual
+  : process.env.REACT_APP_API_BASE_URL || `${window.location.origin}/api`;  // Desarrollo: usar env o fallback
 
 // Debug: imprimir la URL que se está usando
-console.log('[API] window.location:', window.location);
+console.log('[API] Hostname:', window.location.hostname);
 console.log('[API] window.location.origin:', window.location.origin);
 console.log('[API] process.env.REACT_APP_API_BASE_URL:', process.env.REACT_APP_API_BASE_URL);
 console.log('[API] API_BASE_URL final:', API_BASE_URL);
