@@ -1,29 +1,6 @@
-from fastapi import FastAPI, APIRouter, HTTPException
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List, Optional
-import uuid
-from datetime import datetime, timezone
-
-# Configuración del entorno
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
-# Conexión a MongoDB
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# Crear la aplicación principal
-app = FastAPI(
-    title="Mi API",
-    description="API Backend",
 from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -40,21 +17,28 @@ import shutil
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # Conexión a MongoDB
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db_name = os.environ.get('DB_NAME', 'rinopatia_db')
+db = client[db_name]
 
 # Crear la aplicación principal
 app = FastAPI(
-    title="Mi API",
-    description="API Backend",
+    title="RinoDetect API",
+    description="API Backend para detección de rinopatía",
     version="1.0.0"
 )
 
 # Router con prefijo /api
 api_router = APIRouter(prefix="/api")
-
 
 # MODELOS PYDANTIC
 class PageSection(BaseModel):
@@ -128,7 +112,6 @@ async def update_page(slug: str, page_data: Page):
 @api_router.post("/diagnose", response_model=DiagnosisResponse)
 async def diagnose(request: DiagnosisRequest):
     # MOCK AI MODEL
-    # In a real scenario, this would load the model and predict
     import random
     has_disease = random.choice([True, False])
     confidence = random.uniform(0.85, 0.99)
@@ -156,9 +139,6 @@ async def upload_image(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         
-    # Construct URL (assuming local dev)
-    # In production, this should be an S3 URL or similar
-    # For now we serve via the static mount
     return {"url": f"/static/uploads/{filename}"}
 
 @api_router.get("/")
@@ -172,9 +152,6 @@ async def root():
 app.include_router(api_router)
 
 # Mount static files for uploads
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-
 app.mount("/static", StaticFiles(directory=str(ROOT_DIR / "static")), name="static")
 
 # Configurar CORS
@@ -187,9 +164,6 @@ app.add_middleware(
 )
 
 # Servir archivos estáticos del frontend (para producción)
-# Note: We already mounted /static above for uploads, so we need to be careful with the frontend static files.
-# Usually frontend build has its own 'static' folder. 
-# Let's mount frontend assets at root but exclude /api and /static (uploads)
 frontend_build_dir = ROOT_DIR.parent / "frontend" / "build"
 
 @app.get("/{full_path:path}")
@@ -205,13 +179,6 @@ async def serve_frontend(full_path: str):
         return FileResponse(frontend_build_dir / "index.html")
     
     return {"message": "Frontend not built"}
-
-# Configurar logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup_event():
