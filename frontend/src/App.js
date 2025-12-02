@@ -36,7 +36,10 @@ import Dashboard from "./pages/admin/Dashboard";
 import PageEditor from "./pages/admin/PageEditor";
 
 // 🌐 URL del backend
-export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// Si está definida la variable de entorno, usar esa
+// Si no, usar la URL actual del servidor (importante para producción)
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || window.location.origin;
+export { BACKEND_URL };
 export const API_URL = `${BACKEND_URL}/api`;
 
 function App() {
