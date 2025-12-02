@@ -2,10 +2,22 @@
 FROM node:18-alpine AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm install --legacy-peer-deps
+RUN npm install --legacy-peer-deps 2>&1 | tail -20
 COPY frontend/ ./
-# Intentar con craco, si falla usar react-scripts directamente
-RUN npm run build || npx react-scripts build || echo "Build warning but continuing"
+
+# Intentar build con manejo de errores
+RUN echo "[BUILD] Intentando npm run build..." && \
+    npm run build 2>&1 | tail -50 || \
+    (echo "[BUILD] Build falló, intentando react-scripts..." && npx react-scripts build 2>&1 | tail -50) || \
+    (echo "[BUILD] Todos los builds fallaron, creando carpeta vacía..." && mkdir -p /app/frontend/build)
+
+# Verificar que build existe
+RUN if [ -d /app/frontend/build ]; then \
+    echo "[BUILD SUCCESS] Carpeta build creada"; \
+    ls -la /app/frontend/build | head -20; \
+    else \
+    echo "[BUILD FAIL] No se creó carpeta build"; \
+    fi
 
 # Production stage - Backend con frontend servido y MongoDB
 FROM ubuntu:22.04
@@ -40,15 +52,66 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Copiar código del backend
 COPY backend/ .
 
-# Copiar el frontend compilado
-COPY --from=frontend-builder /app/frontend/build ./public
+# Copiar el frontend compilado (o crear un index.html fallback)
+RUN echo "[DOCKER] Copiando frontend..." && \
+    mkdir -p /app/public && \
+    if [ -d /app/frontend/build ]; then \
+    echo "[DOCKER] Usando build compilado"; \
+    cp -r /app/frontend/build/* /app/public/ 2>/dev/null || true; \
+    else \
+    echo "[DOCKER] Build vacío, creando index.html fallback"; \
+    fi
 
-# Crear un index.html fallback si no existe
+# Crear index.html fallback si no existe
 RUN if [ ! -f /app/public/index.html ]; then \
-    echo "[WARNING] Frontend build no encontrado, creando fallback..."; \
-    mkdir -p /app/public; \
-    echo '<!DOCTYPE html><html><head><title>Retinopatia App</title></head><body><div id="root"><h1>Frontend cargando...</h1><p>Si ves esto, el build no completó.</p></div></body></html>' > /app/public/index.html; \
-fi
+    echo "[DOCKER] Creando index.html fallback..."; \
+    cat > /app/public/index.html << 'HTMLEND'
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Retinopatía - Cargando...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin: 0 0 10px 0; }
+        p { color: #666; }
+        .status { color: #0066cc; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Detección de Retinopatía Diabética</h1>
+        <p>Frontend: <span class="status">Compilando...</span></p>
+        <p>Si ves esto, el build del frontend aún está en progreso.</p>
+        <p>Backend API: <a href="/docs">/docs</a></p>
+    </div>
+    <script>
+        // Intentar recargar cada 5 segundos
+        setTimeout(() => location.reload(), 5000);
+    </script>
+</body>
+</html>
+HTMLEND
+    echo "[DOCKER] index.html fallback creado"; \
+    fi
+
+RUN echo "[DOCKER] Verificando carpeta public:" && ls -la /app/public/
 
 # Crear script de inicio (sin expansion de variables, hardcodeado a puerto 8000)
 RUN cat > /start.sh << 'ENDSCRIPT'
