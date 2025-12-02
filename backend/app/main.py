@@ -37,64 +37,65 @@ async def shutdown_event():
     await close_mongo_connection()
     print("[*] Aplicacion cerrada")
 
-# Registrar rutas
+# Servir archivos estáticos del frontend PRIMERO (antes de las rutas de API)
+PUBLIC_DIR = Path("/app/public")
+print(f"[DEBUG] Buscando frontend en: {PUBLIC_DIR}")
+
+if PUBLIC_DIR.exists():
+    print(f"[INFO] Carpeta public encontrada: {PUBLIC_DIR}")
+    files = list(PUBLIC_DIR.glob("*"))
+    print(f"[INFO] Archivos en public: {[f.name for f in files]}")
+    
+    # Montar archivos estáticos
+    app.mount("/static", StaticFiles(directory=str(PUBLIC_DIR)), name="static")
+else:
+    print(f"[WARNING] Carpeta public NO encontrada en {PUBLIC_DIR}")
+
+# Registrar rutas de API
 app.include_router(auth.router, prefix="/api")
 app.include_router(pages.router, prefix="/api")
 app.include_router(prediction.router, prefix="/api")
 
-# Ruta raiz
+# Health check
+@app.get("/health")
+async def health():
+    """Health check endpoint"""
+    return {"status": "healthy"}
+
+# SPA fallback - servir index.html para todas las rutas que no sean /api, /docs, /health, /static, /openapi.json
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    """Servir la aplicación React (SPA) - fallback para todas las rutas no capturadas"""
+    # Excluir rutas de API y documentación
+    if full_path.startswith("api/"):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="API endpoint not found")
+    
+    if full_path in ["docs", "openapi.json", "redoc", "health"]:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    # Servir index.html para cualquier otra ruta (SPA)
+    index_file = PUBLIC_DIR / "index.html"
+    if index_file.exists():
+        print(f"[DEBUG] Sirviendo index.html para ruta: /{full_path}")
+        return FileResponse(index_file, media_type="text/html")
+    
+    from fastapi import HTTPException
+    raise HTTPException(status_code=404, detail="Frontend index.html not found")
+
+# Ruta raiz - servir index.html
 @app.get("/")
 async def root():
-    """Endpoint raiz"""
+    """Servir el frontend React en la raiz"""
+    index_file = PUBLIC_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file, media_type="text/html")
+    
+    # Fallback si no existe
     return {
         "message": f"{settings.APP_NAME} v{settings.VERSION}",
         "status": "running",
         "docs": "/docs",
         "health": "/health"
     }
-
-@app.get("/health")
-async def health():
-    """Health check endpoint"""
-    return {"status": "healthy"}
-
-# Servir archivos estáticos del frontend
-# __file__ = /app/app/main.py
-# .parent = /app/app
-# .parent = /app
-# .parent = /
-# .parent.parent.parent = / (INCORRECTO!)
-# Mejor: usar /app/public directamente
-
-PUBLIC_DIR = Path("/app/public")
-print(f"[DEBUG] Buscando frontend en: {PUBLIC_DIR}")
-print(f"[DEBUG] Ruta absoluta: {PUBLIC_DIR.resolve()}")
-
-try:
-    if PUBLIC_DIR.exists():
-        print(f"[INFO] Carpeta public encontrada: {PUBLIC_DIR}")
-        # Listar archivos
-        files = list(PUBLIC_DIR.glob("*"))
-        print(f"[INFO] Archivos en public: {[f.name for f in files]}")
-        
-        # Montar la carpeta public como archivos estáticos
-        app.mount("/static", StaticFiles(directory=str(PUBLIC_DIR)), name="static")
-        
-        # SPA fallback - servir index.html para cualquier ruta no encontrada
-        @app.get("/{full_path:path}")
-        async def serve_spa(full_path: str):
-            """Servir la aplicación React (SPA)"""
-            # No servir archivos estáticos que ya están en /api o /docs
-            if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi"):
-                raise Exception("Not found")
-            
-            index_file = PUBLIC_DIR / "index.html"
-            if index_file.exists():
-                print(f"[DEBUG] Sirviendo index.html para: /{full_path}")
-                return FileResponse(index_file, media_type="text/html")
-            
-            return {"error": "Frontend index.html not found", "path": str(PUBLIC_DIR)}
-    else:
-        print(f"[WARNING] Carpeta public NO encontrada en {PUBLIC_DIR}")
-except Exception as e:
-    print(f"[ERROR] Error al montar frontend: {e}")
