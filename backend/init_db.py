@@ -44,37 +44,37 @@ async def init_database():
     pages = [
         {
             "slug": "inicio",
-            "title": "Deteccion de Retinopatia Diabetica",
-            "subtitle": "Sistema de analisis automatizado mediante inteligencia artificial para la deteccion temprana de retinopatia diabetica",
+            "title": "Bienvenido al Proyecto",
+            "subtitle": "Sistema moderno con React, FastAPI y MongoDB",
             "heroImage": "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=800&q=80",
             "sections": [
                 {
-                    "title": "Que es la Retinopatia Diabetica?",
-                    "content": "La retinopatia diabetica es una complicacion de la diabetes que afecta los ojos. Se produce cuando los niveles altos de azucar en la sangre causan dano a los vasos sanguineos de la retina.",
+                    "title": "Sobre el Proyecto",
+                    "content": "Este es un proyecto moderno que integra un frontend React con un backend FastAPI y una base de datos MongoDB. Diseñado para ser escalable y fácil de personalizar.",
                     "image": "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=600&q=80",
                     "order": 1
                 },
                 {
-                    "title": "Importancia de la Deteccion Temprana",
-                    "content": "La deteccion temprana es crucial para prevenir la perdida de vision. Nuestro sistema utiliza inteligencia artificial para analizar imagenes de fondo de ojo.",
+                    "title": "Características Principales",
+                    "content": "Frontend moderno con React, Backend robusto con FastAPI, Base de datos NoSQL con MongoDB, Autenticación JWT, API RESTful completa, y más.",
                     "image": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&q=80",
                     "order": 2
                 }
             ],
-            "metaDescription": "Sistema de deteccion de retinopatia diabetica con IA",
+            "metaDescription": "Proyecto moderno con React, FastAPI y MongoDB",
             "isPublished": True,
             "createdAt": datetime.utcnow(),
             "updatedAt": datetime.utcnow()
         },
         {
             "slug": "modelo",
-            "title": "Modelo de Inteligencia Artificial",
-            "subtitle": "Deep Learning para deteccion automatica de retinopatia diabetica",
+            "title": "Arquitectura del Proyecto",
+            "subtitle": "Stack tecnológico y estructura del sistema",
             "heroImage": "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80",
             "sections": [
                 {
-                    "title": "Arquitectura del Modelo",
-                    "content": "El modelo utiliza una arquitectura de Red Neuronal Convolucional (CNN) basada en ResNet50.",
+                    "title": "Stack Tecnológico",
+                    "content": "React 18 para el frontend, FastAPI para el backend, MongoDB como base de datos, Docker para containerización, y Railway para deployment.",
                     "order": 1
                 }
             ],

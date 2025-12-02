@@ -4,7 +4,7 @@ import os
 
 class Settings(BaseSettings):
     # App
-    APP_NAME: str = "RetinopatiaIA API"
+    APP_NAME: str = "Proyecto API"
     VERSION: str = "1.0.0"
     DEBUG: bool = True
 
