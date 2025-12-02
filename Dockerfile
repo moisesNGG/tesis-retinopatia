@@ -60,12 +60,11 @@ RUN echo "[DOCKER] Copiando frontend..." && \
     cp -r /app/frontend/build/* /app/public/ 2>/dev/null || true; \
     else \
     echo "[DOCKER] Build vacío, creando index.html fallback"; \
-    fi
-
-# Crear index.html fallback si no existe
-RUN if [ ! -f /app/public/index.html ]; then \
+    fi && \
+    if [ ! -f /app/public/index.html ]; then \
     echo "[DOCKER] Creando index.html fallback..."; \
-    cat > /app/public/index.html << 'HTMLEND'
+    mkdir -p /app/public; \
+    cat > /app/public/index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html>
 <head>
@@ -102,16 +101,14 @@ RUN if [ ! -f /app/public/index.html ]; then \
         <p>Backend API: <a href="/docs">/docs</a></p>
     </div>
     <script>
-        // Intentar recargar cada 5 segundos
         setTimeout(() => location.reload(), 5000);
     </script>
 </body>
 </html>
-HTMLEND
-    echo "[DOCKER] index.html fallback creado"; \
-    fi
-
-RUN echo "[DOCKER] Verificando carpeta public:" && ls -la /app/public/
+HTMLEOF
+    fi && \
+    echo "[DOCKER] Verificando carpeta public:" && \
+    ls -la /app/public/ | head -20
 
 # Crear script de inicio (sin expansion de variables, hardcodeado a puerto 8000)
 RUN cat > /start.sh << 'ENDSCRIPT'
