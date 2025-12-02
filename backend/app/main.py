@@ -60,29 +60,26 @@ async def health():
 
 # Servir archivos estáticos del frontend
 PUBLIC_DIR = Path(__file__).parent.parent.parent / "public"
+print(f"[DEBUG] Buscando frontend en: {PUBLIC_DIR}")
+print(f"[DEBUG] Existe: {PUBLIC_DIR.exists()}")
 
 if PUBLIC_DIR.exists():
-    # Montar la carpeta public como raíz de archivos estáticos
+    print(f"[INFO] Frontend encontrado en {PUBLIC_DIR}")
+    # Montar la carpeta public como archivos estáticos
     app.mount("/static", StaticFiles(directory=str(PUBLIC_DIR)), name="static")
     
     # SPA fallback - servir index.html para cualquier ruta no encontrada
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """Servir la aplicación React (SPA)"""
-        # No servir archivos estáticos que ya están en /static
-        if full_path.startswith("api/"):
+        # No servir archivos estáticos que ya están en /api o /docs
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi"):
             raise Exception("Not found")
         
         index_file = PUBLIC_DIR / "index.html"
         if index_file.exists():
-            return FileResponse(index_file)
+            return FileResponse(index_file, media_type="text/html")
         
-        return {"error": "Frontend not built. Run npm run build in frontend folder."}
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "version": settings.VERSION
-    }
+        return {"error": "Frontend index.html not found"}
+else:
+    print(f"[WARNING] Frontend no encontrado en {PUBLIC_DIR}")

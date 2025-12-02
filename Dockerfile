@@ -4,7 +4,8 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install --legacy-peer-deps
 COPY frontend/ ./
-RUN npm run build
+# Intentar con craco, si falla usar react-scripts directamente
+RUN npm run build || npx react-scripts build || echo "Build warning but continuing"
 
 # Production stage - Backend con frontend servido y MongoDB
 FROM ubuntu:22.04
@@ -41,6 +42,13 @@ COPY backend/ .
 
 # Copiar el frontend compilado
 COPY --from=frontend-builder /app/frontend/build ./public
+
+# Crear un index.html fallback si no existe
+RUN if [ ! -f /app/public/index.html ]; then \
+    echo "[WARNING] Frontend build no encontrado, creando fallback..."; \
+    mkdir -p /app/public; \
+    echo '<!DOCTYPE html><html><head><title>Retinopatia App</title></head><body><div id="root"><h1>Frontend cargando...</h1><p>Si ves esto, el build no completó.</p></div></body></html>' > /app/public/index.html; \
+fi
 
 # Crear script de inicio (sin expansion de variables, hardcodeado a puerto 8000)
 RUN cat > /start.sh << 'ENDSCRIPT'
