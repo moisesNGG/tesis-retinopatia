@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm run build:*)",
+      "Bash(timeout 30 npm start)",
+      "Bash(timeout 40 npm start:*)",
+      "Bash(cat:*)",
+      "Bash(echo:*)",
+      "Bash(pip install:*)",
+      "Bash(pip uninstall:*)",
+      "Bash(python init_db.py:*)",
+      "Bash(timeout 15 python:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -25,42 +25,38 @@ import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 
-// 📦 Importar componentes
-import PaginaInicio from "./components/PaginaInicio";
-import ComponenteEjemplo from "./components/ComponenteEjemplo";
-import FormularioEjemplo from "./components/FormularioEjemplo";
-import ListaMensajes from "./components/ListaMensajes";
+// Páginas principales
+import Inicio from "./pages/Inicio";
+import Modelo from "./pages/Modelo";
+import Proceso from "./pages/Proceso";
 
-// 🌐 URL del backend (IMPORTANTE: No cambiar esta configuración)
+// Páginas admin
+import Login from "./pages/admin/Login";
+import Dashboard from "./pages/admin/Dashboard";
+import PageEditor from "./pages/admin/PageEditor";
+
+// 🌐 URL del backend
 export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API_URL = `${BACKEND_URL}/api`;
 
 function App() {
   return (
-    <div className="App min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="App min-h-screen">
       <BrowserRouter>
         <Routes>
-          {/* 🏠 Página de inicio */}
-          <Route path="/" element={<PaginaInicio />} />
-          
-          {/* 📖 Página de ejemplo de componente */}
-          <Route path="/ejemplo" element={<ComponenteEjemplo />} />
-          
-          {/* 📝 Página de formulario */}
-          <Route path="/formulario" element={<FormularioEjemplo />} />
-          
-          {/* 📋 Página de lista de mensajes */}
-          <Route path="/mensajes" element={<ListaMensajes />} />
-          
-          {/* 
-          🔧 AGREGAR NUEVAS RUTAS AQUÍ:
-          <Route path="/mi-nueva-pagina" element={<MiNuevoComponente />} />
-          */}
+          {/* Rutas públicas */}
+          <Route path="/" element={<Inicio />} />
+          <Route path="/modelo" element={<Modelo />} />
+          <Route path="/proceso" element={<Proceso />} />
+
+          {/* Rutas admin */}
+          <Route path="/admin" element={<Login />} />
+          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/admin/pages/:slug" element={<PageEditor />} />
         </Routes>
       </BrowserRouter>
-      
-      {/* 🎉 Toaster para notificaciones */}
-      <Toaster 
+
+      <Toaster
         position="top-right"
         richColors
         closeButton
