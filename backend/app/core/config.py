@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
+import os
 
 class Settings(BaseSettings):
     # App
@@ -7,8 +8,8 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     DEBUG: bool = True
 
-    # MongoDB
-    MONGODB_URI: str = "mongodb://localhost:27017"
+    # MongoDB - Local en el contenedor
+    MONGODB_URI: str = os.getenv("MONGODB_URI", "mongodb://127.0.0.1:27017")
     MONGODB_DB_NAME: str = "retinopatia_db"
 
     # JWT

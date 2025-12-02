@@ -11,7 +11,7 @@
 ```bash
 # Asegúrate de que todo esté committeado
 git add .
-git commit -m "Preparar para despliegue monolítico en Railway"
+git commit -m "Preparar para despliegue monolítico en Railway con MongoDB local"
 git push origin main
 ```
 
@@ -26,18 +26,23 @@ git push origin main
 En el dashboard de Railway, agrega estas variables:
 
 ```
-MONGO_URL=mongodb+srv://usuario:contraseña@cluster.mongodb.net/
-DB_NAME=tu_base_datos
+MONGODB_URI=mongodb://127.0.0.1:27017
+MONGODB_DB_NAME=retinopatia_db
+JWT_SECRET_KEY=tu_secret_muy_seguro_cambiar_en_produccion
+DEBUG=false
 ALLOWED_ORIGINS=["https://tu-dominio.railway.app"]
-JWT_SECRET=tu_secret_muy_seguro
 ```
 
 ### 4. Esperar el despliegue
 Railway detectará automáticamente:
 - El `Dockerfile` para construir la imagen
+- Instalará MongoDB dentro del contenedor
 - Instalará dependencias de Node y Python
 - Compilará el frontend
-- Desplegará todo en un solo contenedor
+- Desplegará todo en un solo contenedor con:
+  - MongoDB (base de datos)
+  - FastAPI (backend)
+  - Frontend compilado (archivos estáticos)
 
 ### 5. Verificar el despliegue
 - La URL estará disponible en el dashboard de Railway
@@ -48,49 +53,64 @@ Railway detectará automáticamente:
 ## Estructura de la Aplicación Monolítica
 
 ```
-Usuario → Railway Load Balancer
-         ↓
-    Docker Container
-    ├─ Frontend (archivos estáticos)
-    ├─ Backend (FastAPI)
-    └─ Conexión MongoDB
+Usuario → Railway Load Balancer → Puerto 8000
+                                    ↓
+                              Docker Container
+                              ├─ MongoDB (local, puerto 27017)
+                              ├─ FastAPI Backend (puerto 8000)
+                              └─ Frontend compilado (archivos estáticos)
 ```
 
 ## Después del Despliegue
 
-- **Logs**: Revisa los logs en Railway → Logs
+- **Logs**: Revisa los logs en Railway → Logs (verás MongoDB y FastAPI inicializándose)
 - **Redeploy**: Empuja cambios a main y se redeploy automáticamente
 - **Variables**: Cambia variables en Railway Settings → Variables
-- **Base de datos**: MongoDB debe estar accesible desde Railway
+- **Base de datos**: MongoDB está integrada en el contenedor, automático
 
 ## Troubleshooting
 
-### Error de conexión a MongoDB
-- Verifica que `MONGO_URL` sea correcta
-- Whitelist la IP de Railway en MongoDB Atlas (o usa 0.0.0.0)
+### MongoDB no inicia
+- Verifica los logs en Railway (busca "mongod")
+- Revisa que haya espacio en disco en Railway
 
 ### Frontend no se carga
 - Revisa que `npm run build` funcione localmente
 - Verifica que `frontend/build/index.html` exista
 
+### Datos se pierden al redeplegar
+- Es normal, MongoDB está en el contenedor
+- Para persistencia, usa MongoDB Atlas externa o volúmenes en Railway
+
 ### Puerto incorrecto
 - Railway automáticamente asigna el puerto en la variable `PORT`
-- El Dockerfile ya está configurado para usarlo
+- FastAPI está configurado en puerto 8000
 
-### Base de datos sin datos
-- Ejecuta `python backend/init_db.py` localmente para inicializar
-- O crea los datos necesarios en MongoDB Atlas
+## Ventajas de esta solución
 
-## Base de Datos en Railway (Alternativa)
+✅ **Todo en un solo lugar** - No necesitas servicios externos  
+✅ **Monolítico** - Una sola aplicación, una sola URL  
+✅ **Fácil de desplegar** - Railway lo construye automáticamente  
+✅ **Rápido** - MongoDB local es más rápido que servicios externos  
+✅ **Desarrollo local** - Puedes probar todo localmente antes de desplegar  
 
-Si quieres usar PostgreSQL/MySQL en Railway en lugar de MongoDB:
+## Desarrollo Local
 
-1. Agrega una nueva infraestructura en Railway
-2. Conecta la base de datos desde el panel
-3. Las credenciales se inyectarán automáticamente como variables
+Para probar todo localmente:
 
-## Monitoreo
+```bash
+# Terminal 1 - Instala y ejecuta MongoDB
+mongod --dbpath ./data/db
 
-- CPU y memoria: Dashboard de Railway
-- Logs: Sección de Logs en Railway
-- Health Check: `GET /health` responde cada 30 segundos
+# Terminal 2 - Backend
+cd backend
+pip install -r requirements.txt
+python run.py
+
+# Terminal 3 - Frontend
+cd frontend
+npm install
+npm start
+```
+
+Accede a `http://localhost:3000` para el frontend y `http://localhost:8000` para el API.
