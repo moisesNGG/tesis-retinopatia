@@ -49,10 +49,10 @@ if PUBLIC_DIR.exists():
     files = list(PUBLIC_DIR.glob("*"))
     print(f"[INFO] Archivos en public: {[f.name for f in files]}")
     
-    # Montar archivos estáticos - IMPORTANTE: la carpeta debe ser PUBLIC_DIR para que /static/... funcione
+    # Montar archivos estáticos - la carpeta STATIC_DIR se monta en /static
     if STATIC_DIR.exists():
-        print(f"[INFO] Montando archivos estáticos desde: {STATIC_DIR}")
-        app.mount("/static", StaticFiles(directory=str(PUBLIC_DIR)), name="static")
+        print(f"[INFO] Montando archivos estáticos desde: {STATIC_DIR} en /static")
+        app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     else:
         print(f"[WARNING] Carpeta static NO encontrada en {STATIC_DIR}")
 else:
