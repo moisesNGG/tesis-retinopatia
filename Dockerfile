@@ -52,8 +52,11 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Copiar código del backend
 COPY backend/ .
 
-# Copiar el frontend compilado
-COPY --from=frontend-builder /app/frontend/build ./public 2>/dev/null || true
+# Crear carpeta public antes de copiar el frontend
+RUN mkdir -p /app/public
+
+# Copiar el frontend compilado si existe
+COPY --from=frontend-builder /app/frontend/build/ ./public/ 2>/dev/null || true
 
 # Crear index.html fallback si no existe
 RUN mkdir -p /app/public && \
