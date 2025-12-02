@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor \
     python3 \
     python3-pip \
+    && ln -s /usr/bin/python3 /usr/bin/python \
     && rm -rf /var/lib/apt/lists/*
 
 # Instalar MongoDB desde el repositorio oficial
@@ -49,8 +50,28 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:${PORT}/health || exit 1
 
 # Crear supervisor config para ejecutar MongoDB y FastAPI
-RUN mkdir -p /var/log/supervisor && \
-    echo '[supervisord]\nnodaemon=true\nlogfile=/var/log/supervisor/supervisord.log\nuser=root\n\n[program:mongodb]\ncommand=/usr/bin/mongod --dbpath /data/db --bind_ip 127.0.0.1 --logpath /var/log/mongodb/mongod.log --quiet\nautostart=true\nautorestart=true\nstderr_logfile=/var/log/supervisor/mongodb.err.log\nstdout_logfile=/var/log/supervisor/mongodb.out.log\nuser=mongodb\n\n[program:fastapi]\ncommand=python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000\ndirectory=/app\nautostart=true\nautorestart=true\nstderr_logfile=/var/log/supervisor/fastapi.err.log\nstdout_logfile=/var/log/supervisor/fastapi.out.log\n' > /etc/supervisor/conf.d/services.conf
+RUN mkdir -p /var/log/supervisor && cat > /etc/supervisor/conf.d/services.conf << 'EOF'
+[supervisord]
+nodaemon=true
+logfile=/var/log/supervisor/supervisord.log
+user=root
+
+[program:mongodb]
+command=/usr/bin/mongod --dbpath /data/db --bind_ip 127.0.0.1 --logpath /var/log/mongodb/mongod.log --quiet
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/supervisor/mongodb.err.log
+stdout_logfile=/var/log/supervisor/mongodb.out.log
+user=mongodb
+
+[program:fastapi]
+command=python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+directory=/app
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/supervisor/fastapi.err.log
+stdout_logfile=/var/log/supervisor/fastapi.out.log
+EOF
 
 # Exponer puerto
 EXPOSE 8000
