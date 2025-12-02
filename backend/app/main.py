@@ -39,15 +39,22 @@ async def shutdown_event():
 
 # Servir archivos estáticos del frontend PRIMERO (antes de las rutas de API)
 PUBLIC_DIR = Path("/app/public")
+STATIC_DIR = PUBLIC_DIR / "static"
+
 print(f"[DEBUG] Buscando frontend en: {PUBLIC_DIR}")
+print(f"[DEBUG] Buscando estáticos en: {STATIC_DIR}")
 
 if PUBLIC_DIR.exists():
     print(f"[INFO] Carpeta public encontrada: {PUBLIC_DIR}")
     files = list(PUBLIC_DIR.glob("*"))
     print(f"[INFO] Archivos en public: {[f.name for f in files]}")
     
-    # Montar archivos estáticos
-    app.mount("/static", StaticFiles(directory=str(PUBLIC_DIR)), name="static")
+    # Montar archivos estáticos - IMPORTANTE: la carpeta debe ser PUBLIC_DIR para que /static/... funcione
+    if STATIC_DIR.exists():
+        print(f"[INFO] Montando archivos estáticos desde: {STATIC_DIR}")
+        app.mount("/static", StaticFiles(directory=str(PUBLIC_DIR)), name="static")
+    else:
+        print(f"[WARNING] Carpeta static NO encontrada en {STATIC_DIR}")
 else:
     print(f"[WARNING] Carpeta public NO encontrada en {PUBLIC_DIR}")
 
