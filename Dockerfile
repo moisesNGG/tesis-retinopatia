@@ -46,8 +46,12 @@ echo "[INFO] Iniciando MongoDB..."
 MONGO_PID=$!
 sleep 3
 echo "[INFO] MongoDB iniciado (PID: $MONGO_PID)"
-echo "[INFO] Iniciando FastAPI en puerto 8000..."
+
+echo "[INFO] Inicializando base de datos..."
 cd /app
+python3 init_db.py || echo "[WARN] init_db.py falló o ya está inicializada"
+
+echo "[INFO] Iniciando FastAPI en puerto 8000..."
 exec python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ENDSCRIPT
 RUN chmod +x /start.sh
