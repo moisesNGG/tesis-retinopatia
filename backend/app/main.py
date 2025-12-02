@@ -69,6 +69,16 @@ async def health():
     """Health check endpoint"""
     return {"status": "healthy"}
 
+# Debug endpoint - para testear que el backend recibe requests
+@app.get("/api/debug")
+async def debug():
+    """Debug endpoint para verificar que el backend está accesible"""
+    return {
+        "status": "ok",
+        "message": "Backend accesible desde la URL pública",
+        "origin_header": "check browser console"
+    }
+
 # SPA fallback - servir index.html para todas las rutas que no sean /api, /docs, /health, /static, /openapi.json
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):

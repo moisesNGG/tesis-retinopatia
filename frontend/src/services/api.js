@@ -7,9 +7,16 @@
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || `${window.location.origin}/api`;
 
 // Debug: imprimir la URL que se está usando
+console.log('[API] window.location:', window.location);
 console.log('[API] window.location.origin:', window.location.origin);
 console.log('[API] process.env.REACT_APP_API_BASE_URL:', process.env.REACT_APP_API_BASE_URL);
 console.log('[API] API_BASE_URL final:', API_BASE_URL);
+
+// Test debug endpoint
+fetch(`${window.location.origin}/api/debug`)
+  .then(r => r.json())
+  .then(d => console.log('[API] Debug endpoint response:', d))
+  .catch(e => console.error('[API] Debug endpoint error:', e));
 
 // Helper para hacer requests
 const fetchWithAuth = async (url, options = {}) => {
