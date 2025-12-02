@@ -56,32 +56,11 @@ COPY backend/ .
 COPY --from=frontend-builder /app/frontend/build ./public 2>/dev/null || true
 
 # Crear index.html fallback si no existe
-RUN bash -c 'mkdir -p /app/public && if [ ! -f /app/public/index.html ]; then cat > /app/public/index.html << "EOF"
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Retinopatía Diabética</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }
-        .container { text-align: center; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        h1 { color: #333; margin: 0 0 10px 0; }
-        p { color: #666; }
-        a { color: #0066cc; text-decoration: none; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Sistema de Detección de Retinopatía Diabética</h1>
-        <p>Backend: Corriendo en puerto 8000</p>
-        <p><a href="/docs">Ver Documentación API</a></p>
-        <p><a href="/health">Health Check</a></p>
-    </div>
-</body>
-</html>
-EOF
-fi && ls -la /app/public/'
+RUN mkdir -p /app/public && \
+    if [ ! -f /app/public/index.html ]; then \
+    printf '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Retinopathia</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#f5f5f5}div{background:white;padding:40px;border-radius:8px;text-align:center}</style></head><body><div><h1>Retinopathia Diabetica</h1><p>Backend corriendo</p><p><a href="/docs">API Docs</a> | <a href="/health">Health</a></p></div></body></html>' > /app/public/index.html; \
+    fi && \
+    ls -la /app/public/
 
 # Crear script de inicio (sin expansion de variables, hardcodeado a puerto 8000)
 RUN cat > /start.sh << 'ENDSCRIPT'
