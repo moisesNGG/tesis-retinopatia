@@ -61,25 +61,33 @@ async def health():
 # Servir archivos estáticos del frontend
 PUBLIC_DIR = Path(__file__).parent.parent.parent / "public"
 print(f"[DEBUG] Buscando frontend en: {PUBLIC_DIR}")
-print(f"[DEBUG] Existe: {PUBLIC_DIR.exists()}")
+print(f"[DEBUG] Ruta absoluta: {PUBLIC_DIR.resolve()}")
 
-if PUBLIC_DIR.exists():
-    print(f"[INFO] Frontend encontrado en {PUBLIC_DIR}")
-    # Montar la carpeta public como archivos estáticos
-    app.mount("/static", StaticFiles(directory=str(PUBLIC_DIR)), name="static")
-    
-    # SPA fallback - servir index.html para cualquier ruta no encontrada
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        """Servir la aplicación React (SPA)"""
-        # No servir archivos estáticos que ya están en /api o /docs
-        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi"):
-            raise Exception("Not found")
+try:
+    if PUBLIC_DIR.exists():
+        print(f"[INFO] Carpeta public encontrada: {PUBLIC_DIR}")
+        # Listar archivos
+        files = list(PUBLIC_DIR.glob("*"))
+        print(f"[INFO] Archivos en public: {[f.name for f in files]}")
         
-        index_file = PUBLIC_DIR / "index.html"
-        if index_file.exists():
-            return FileResponse(index_file, media_type="text/html")
+        # Montar la carpeta public como archivos estáticos
+        app.mount("/static", StaticFiles(directory=str(PUBLIC_DIR)), name="static")
         
-        return {"error": "Frontend index.html not found"}
-else:
-    print(f"[WARNING] Frontend no encontrado en {PUBLIC_DIR}")
+        # SPA fallback - servir index.html para cualquier ruta no encontrada
+        @app.get("/{full_path:path}")
+        async def serve_spa(full_path: str):
+            """Servir la aplicación React (SPA)"""
+            # No servir archivos estáticos que ya están en /api o /docs
+            if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi"):
+                raise Exception("Not found")
+            
+            index_file = PUBLIC_DIR / "index.html"
+            if index_file.exists():
+                print(f"[DEBUG] Sirviendo index.html para: /{full_path}")
+                return FileResponse(index_file, media_type="text/html")
+            
+            return {"error": "Frontend index.html not found", "path": str(PUBLIC_DIR)}
+    else:
+        print(f"[WARNING] Carpeta public NO encontrada en {PUBLIC_DIR}")
+except Exception as e:
+    print(f"[ERROR] Error al montar frontend: {e}")

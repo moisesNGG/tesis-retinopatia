@@ -58,12 +58,11 @@ RUN mkdir -p /app/public
 # Copiar el frontend compilado si existe
 RUN if [ -d /app/frontend/build ]; then cp -r /app/frontend/build/* /app/public/ 2>/dev/null || true; fi
 
-# Crear index.html fallback si no existe
-RUN mkdir -p /app/public && \
-    if [ ! -f /app/public/index.html ]; then \
-    printf '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Retinopathia</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#f5f5f5}div{background:white;padding:40px;border-radius:8px;text-align:center}</style></head><body><div><h1>Retinopathia Diabetica</h1><p>Backend corriendo</p><p><a href="/docs">API Docs</a> | <a href="/health">Health</a></p></div></body></html>' > /app/public/index.html; \
-    fi && \
-    ls -la /app/public/
+# SIEMPRE crear un index.html (aunque sea fallback)
+RUN printf '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Retinopathia</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#f5f5f5}div{background:white;padding:40px;border-radius:8px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.1)}</style></head><body><div><h1>Sistema de Detección de Retinopatía Diabética</h1><p>v1.0.0</p><p>Backend corriendo correctamente</p><hr><p><a href="/docs">📚 API Docs</a> | <a href="/health">💚 Health Check</a></p></div></body></html>' > /app/public/index.html
+
+# Verificar que index.html existe
+RUN ls -lah /app/public/ && echo "---" && head -c 200 /app/public/index.html
 
 # Crear script de inicio (sin expansion de variables, hardcodeado a puerto 8000)
 RUN cat > /start.sh << 'ENDSCRIPT'
