@@ -59,7 +59,14 @@ async def health():
     return {"status": "healthy"}
 
 # Servir archivos estáticos del frontend
-PUBLIC_DIR = Path(__file__).parent.parent.parent / "public"
+# __file__ = /app/app/main.py
+# .parent = /app/app
+# .parent = /app
+# .parent = /
+# .parent.parent.parent = / (INCORRECTO!)
+# Mejor: usar /app/public directamente
+
+PUBLIC_DIR = Path("/app/public")
 print(f"[DEBUG] Buscando frontend en: {PUBLIC_DIR}")
 print(f"[DEBUG] Ruta absoluta: {PUBLIC_DIR.resolve()}")
 
