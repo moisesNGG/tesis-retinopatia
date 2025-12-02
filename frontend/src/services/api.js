@@ -6,6 +6,11 @@
 // Usar window.location.origin para producción, o variable de entorno si está disponible
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || `${window.location.origin}/api`;
 
+// Debug: imprimir la URL que se está usando
+console.log('[API] window.location.origin:', window.location.origin);
+console.log('[API] process.env.REACT_APP_API_BASE_URL:', process.env.REACT_APP_API_BASE_URL);
+console.log('[API] API_BASE_URL final:', API_BASE_URL);
+
 // Helper para hacer requests
 const fetchWithAuth = async (url, options = {}) => {
   const token = localStorage.getItem('authToken');
