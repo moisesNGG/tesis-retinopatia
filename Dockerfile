@@ -43,7 +43,19 @@ COPY backend/ .
 COPY --from=frontend-builder /app/frontend/build ./public
 
 # Crear script de inicio (sin expansion de variables, hardcodeado a puerto 8000)
-RUN printf '#!/bin/bash\nset -e\necho "[INFO] Iniciando MongoDB..."\n/usr/bin/mongod --dbpath /data/db --bind_ip 127.0.0.1 --logpath /var/log/mongodb/mongod.log --quiet &\nMONGO_PID=$!\nsleep 3\necho "[INFO] MongoDB iniciado (PID: $MONGO_PID)"\necho "[INFO] Iniciando FastAPI en puerto 8000..."\ncd /app\nexec python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000\n' > /start.sh && chmod +x /start.sh
+RUN cat > /start.sh << 'ENDSCRIPT'
+#!/bin/bash
+set -e
+echo "[INFO] Iniciando MongoDB..."
+/usr/bin/mongod --dbpath /data/db --bind_ip 127.0.0.1 --logpath /var/log/mongodb/mongod.log --quiet &
+MONGO_PID=$!
+sleep 3
+echo "[INFO] MongoDB iniciado (PID: $MONGO_PID)"
+echo "[INFO] Iniciando FastAPI en puerto 8000..."
+cd /app
+exec python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+ENDSCRIPT
+RUN chmod +x /start.sh
 
 # Exponer puerto
 EXPOSE 8000
