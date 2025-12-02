@@ -83,7 +83,7 @@ export MONGODB_URI=${MONGODB_URI:-mongodb://127.0.0.1:27017}
 export MONGODB_DB_NAME=${MONGODB_DB_NAME:-retinopatia_db}
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/services.conf
 EOF
-chmod +x /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Exponer puerto
 EXPOSE 8000
