@@ -12,7 +12,7 @@ const Footer = () => {
                 <Activity className="h-4 w-4 text-white" />
               </div>
               <h3 className="font-bold text-gray-900 text-sm">
-                RetinopatíaIA
+                Marca
               </h3>
             </div>
             <p className="text-xs text-gray-600 leading-relaxed">

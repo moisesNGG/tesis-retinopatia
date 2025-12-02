@@ -18,6 +18,15 @@ async def init_database():
     db = client[DB_NAME]
 
     print("[*] Inicializando base de datos...")
+    
+    # Verificar si la BD ya está inicializada
+    pages_count = await db.pages.count_documents({})
+    users_count = await db.users.count_documents({})
+    
+    if pages_count > 0 and users_count > 0:
+        print("[INFO] Base de datos ya inicializada. Saltando inicialización.")
+        client.close()
+        return
 
     # Crear usuario admin
     print("[*] Creando usuario admin...")
