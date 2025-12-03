@@ -58,6 +58,18 @@ if PUBLIC_DIR.exists():
 else:
     print(f"[WARNING] Carpeta public NO encontrada en {PUBLIC_DIR}")
 
+# Montar carpeta de uploads para servir imágenes subidas
+UPLOADS_DIR = Path(__file__).parent.parent.parent / "uploads"
+if UPLOADS_DIR.exists():
+    print(f"[INFO] Montando carpeta uploads desde: {UPLOADS_DIR} en /uploads")
+    app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
+else:
+    print(f"[WARNING] Carpeta uploads NO encontrada en {UPLOADS_DIR}")
+    # Crear la carpeta si no existe
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    print(f"[INFO] Carpeta uploads creada en {UPLOADS_DIR}")
+    app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
+
 # Registrar rutas de API
 app.include_router(auth.router, prefix="/api")
 app.include_router(pages.router, prefix="/api")

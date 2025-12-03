@@ -3,17 +3,25 @@
 Script para inicializar la base de datos con datos de ejemplo
 """
 import asyncio
+import os
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 from passlib.context import CryptContext
+from dotenv import load_dotenv
 
-MONGODB_URI = "mongodb://localhost:27017"
-DB_NAME = "retinopatia_db"
+# Cargar variables de entorno
+load_dotenv()
+
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+DB_NAME = os.getenv("MONGODB_DB_NAME", "retinopatia_db")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 async def init_database():
     """Inicializar base de datos con datos de ejemplo"""
+    print(f"[*] Conectando a: {MONGODB_URI}")
+    print(f"[*] Base de datos: {DB_NAME}")
+
     client = AsyncIOMotorClient(MONGODB_URI)
     db = client[DB_NAME]
 

@@ -19,15 +19,17 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-1.5 rounded-lg shadow-md">
-              <Activity className="h-5 w-5 text-white" />
-            </div>
+            <img
+              src="http://localhost:8000/uploads/logo.png"
+              alt="RetinaVision AI Logo"
+              className="h-10 w-10 object-contain"
+            />
             <div className="flex flex-col">
               <span className="font-bold text-base text-gray-900 leading-none">
-                [Tu Marca Aquí]
+                RetinaVision AI
               </span>
               <span className="text-[10px] text-gray-500 leading-none">
-                Personalizable
+                Detección Inteligente
               </span>
             </div>
           </Link>
