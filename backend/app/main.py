@@ -59,7 +59,10 @@ else:
     print(f"[WARNING] Carpeta public NO encontrada en {PUBLIC_DIR}")
 
 # Montar carpeta de uploads para servir imágenes subidas
-UPLOADS_DIR = Path(__file__).parent.parent.parent / "uploads"
+# En producción (Docker): /app/uploads
+# En desarrollo local: ../uploads (relativo al backend)
+UPLOADS_DIR = Path("/app/uploads") if Path("/app/uploads").exists() else Path(__file__).parent.parent.parent / "uploads"
+
 if UPLOADS_DIR.exists():
     print(f"[INFO] Montando carpeta uploads desde: {UPLOADS_DIR} en /uploads")
     app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
