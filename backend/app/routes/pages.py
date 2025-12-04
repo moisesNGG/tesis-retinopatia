@@ -15,6 +15,7 @@ def page_helper(page) -> dict:
         "title": page["title"],
         "subtitle": page.get("subtitle", ""),
         "heroImage": page.get("heroImage"),
+        "heroImageStyle": page.get("heroImageStyle", "cover"),
         "sections": page.get("sections", []),
         "metaDescription": page.get("metaDescription", ""),
         "isPublished": page.get("isPublished", True),

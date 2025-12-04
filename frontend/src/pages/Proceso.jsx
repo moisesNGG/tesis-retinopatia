@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Layout from '../components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -6,6 +6,9 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { Progress } from '../components/ui/progress';
 import { Badge } from '../components/ui/badge';
 import { Upload, Image as ImageIcon, AlertCircle, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { pagesAPI } from '../services/api';
+import Hero from '../components/sections/Hero';
+import ContentSection from '../components/sections/ContentSection';
 
 const Proceso = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -13,7 +16,26 @@ const Proceso = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [pageData, setPageData] = useState(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    fetchPageData();
+  }, []);
+
+  const fetchPageData = async () => {
+    try {
+      const data = await pagesAPI.getBySlug('proceso');
+      setPageData(data);
+    } catch (err) {
+      console.error('Error cargando datos del CMS:', err);
+      // Si falla, usar valores por defecto
+      setPageData({
+        title: 'Proceso de Análisis',
+        subtitle: 'Sube una imagen de fondo de ojo para detectar signos de retinopatía diabética'
+      });
+    }
+  };
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -120,18 +142,56 @@ const Proceso = () => {
     return colors[severity] || 'bg-gray-100 text-gray-800';
   };
 
+  if (!pageData) {
+    return <Layout><div className="container py-12">Cargando...</div></Layout>;
+  }
+
   return (
     <Layout>
-      <div className="bg-gradient-to-b from-blue-50 to-white py-12">
+      {/* Hero section si hay imagen */}
+      {pageData.heroImage && (
+        <Hero
+          title={pageData.title}
+          subtitle={pageData.subtitle}
+          image={pageData.heroImage}
+          imageStyle={pageData.heroImageStyle || 'cover'}
+          ctaText="Comenzar Análisis"
+          ctaLink="#analizar"
+        />
+      )}
+
+      {/* Secciones del CMS si existen */}
+      {pageData.sections && pageData.sections.length > 0 && (
+        <div className="bg-gradient-to-b from-white to-gray-50">
+          {pageData.sections
+            .sort((a, b) => a.order - b.order)
+            .map((section, index) => (
+              <ContentSection
+                key={section._id || index}
+                title={section.title}
+                content={section.content}
+                image={section.image}
+                imageStyle={section.imageStyle || 'cover'}
+                layout={section.layout || 'horizontal'}
+                imagePosition={index % 2 === 0 ? 'right' : 'left'}
+              />
+            ))}
+        </div>
+      )}
+
+      <div id="analizar" className="bg-gradient-to-b from-blue-50 to-white py-12">
         <div className="container max-w-5xl">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Proceso de Análisis
-            </h1>
-            <p className="text-lg text-gray-600">
-              Sube una imagen de fondo de ojo para detectar signos de retinopatía diabética
-            </p>
-          </div>
+          {/* Mostrar título solo si no hay Hero */}
+          {!pageData.heroImage && (
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                {pageData.title}
+              </h1>
+              <p className="text-lg text-gray-600">
+                {pageData.subtitle}
+              </p>
+            </div>
+          )}
 
           {/* Instrucciones */}
           <Card className="mb-8">

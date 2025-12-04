@@ -109,20 +109,20 @@ const Modelo = () => {
         </div>
       </section>
 
-      <div className="bg-white py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-          {pageData.sections
-            .sort((a, b) => a.order - b.order)
-            .map((section, index) => (
-              <ContentSection
-                key={section._id}
-                title={section.title}
-                content={section.content}
-                image={section.image}
-                variant="card"
-              />
-            ))}
-        </div>
+      <div className="bg-gradient-to-b from-white to-gray-50">
+        {pageData.sections
+          .sort((a, b) => a.order - b.order)
+          .map((section, index) => (
+            <ContentSection
+              key={section._id}
+              title={section.title}
+              content={section.content}
+              image={section.image}
+              imageStyle={section.imageStyle || 'cover'}
+              layout={section.layout || 'horizontal'}
+              imagePosition={index % 2 === 0 ? 'right' : 'left'}
+            />
+          ))}
       </div>
 
       <section className="py-10 bg-gradient-to-br from-blue-50 to-white">
