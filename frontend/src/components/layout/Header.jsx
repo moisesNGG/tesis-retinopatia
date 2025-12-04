@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../ui/button';
-import { Activity, Shield } from 'lucide-react';
+import { Eye, Shield } from 'lucide-react';
 
 const Header = () => {
   const location = useLocation();
@@ -19,11 +19,9 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img
-              src="/uploads/logo.png"
-              alt="RetinaVision AI Logo"
-              className="h-10 w-10 object-contain"
-            />
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-2 rounded-lg shadow-md">
+              <Eye className="h-6 w-6 text-white" />
+            </div>
             <div className="flex flex-col">
               <span className="font-bold text-base text-gray-900 leading-none">
                 RetinaVision AI

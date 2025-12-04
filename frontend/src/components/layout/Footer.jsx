@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Activity } from 'lucide-react';
+import { Heart, Eye } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -9,7 +9,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <div className="bg-blue-600 p-1 rounded">
-                <Activity className="h-4 w-4 text-white" />
+                <Eye className="h-4 w-4 text-white" />
               </div>
               <h3 className="font-bold text-gray-900 text-sm">
                 RetinaVision AI
