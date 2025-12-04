@@ -6,8 +6,10 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Alert, AlertDescription } from '../../components/ui/alert';
-import { ArrowLeft, Save, Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, CheckCircle2, Eye } from 'lucide-react';
 import { pagesAPI } from '../../services/api';
+import Hero from '../../components/sections/Hero';
+import ContentSection from '../../components/sections/ContentSection';
 
 const PageEditor = () => {
   const navigate = useNavigate();
@@ -98,7 +100,7 @@ const PageEditor = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="container py-4">
@@ -131,24 +133,28 @@ const PageEditor = () => {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="container py-8 max-w-4xl">
-        {saved && (
-          <Alert className="mb-6 bg-green-50 border-green-200">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              Cambios guardados exitosamente
-            </AlertDescription>
-          </Alert>
-        )}
+      {/* Content - Split View */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full flex gap-0">
+          {/* Editor Panel - Left */}
+          <div className="w-full lg:w-1/2 overflow-y-auto border-r border-gray-200">
+            <div className="container py-8 max-w-3xl">
+              {saved && (
+                <Alert className="mb-6 bg-green-50 border-green-200">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    Cambios guardados exitosamente
+                  </AlertDescription>
+                </Alert>
+              )}
 
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+              {error && (
+                <Alert variant="destructive" className="mb-6">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-        <div className="space-y-6">
+              <div className="space-y-6">
           {/* Información básica */}
           <Card>
             <CardHeader>
@@ -313,6 +319,61 @@ const PageEditor = () => {
               )}
             </CardContent>
           </Card>
+        </div>
+            </div>
+          </div>
+
+          {/* Preview Panel - Right */}
+          <div className="hidden lg:block lg:w-1/2 overflow-y-auto bg-gradient-to-b from-white to-gray-50">
+            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 p-4">
+              <div className="flex items-center gap-2 text-gray-600">
+                <Eye className="h-4 w-4" />
+                <span className="text-sm font-medium">Vista Previa</span>
+              </div>
+            </div>
+            <div className="p-4">
+              {/* Hero Preview */}
+              {pageData.heroImage && (
+                <div className="mb-6 bg-white rounded-lg shadow-sm overflow-hidden">
+                  <Hero
+                    title={pageData.title}
+                    subtitle={pageData.subtitle}
+                    image={pageData.heroImage}
+                    imageStyle={pageData.heroImageStyle || 'cover'}
+                    ctaText="Vista Previa"
+                    ctaLink="#"
+                  />
+                </div>
+              )}
+
+              {/* Sections Preview */}
+              {pageData.sections && pageData.sections.length > 0 && (
+                <div className="space-y-6">
+                  {pageData.sections
+                    .sort((a, b) => a.order - b.order)
+                    .map((section, index) => (
+                      <div key={section._id || index} className="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <ContentSection
+                          title={section.title || 'Sin título'}
+                          content={section.content || 'Sin contenido'}
+                          image={section.image}
+                          imageStyle={section.imageStyle || 'cover'}
+                          layout={section.layout || 'horizontal'}
+                          imagePosition={index % 2 === 0 ? 'right' : 'left'}
+                        />
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              {(!pageData.sections || pageData.sections.length === 0) && !pageData.heroImage && (
+                <div className="text-center py-12 text-gray-500">
+                  <Eye className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">Agrega contenido para ver la vista previa</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
