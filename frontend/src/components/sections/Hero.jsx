@@ -40,13 +40,13 @@ const Hero = ({ title, subtitle, image, ctaText = "Comenzar Análisis", ctaLink 
 
           {image && (
             <div className="relative lg:pl-8">
-              <div className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-2xl border border-gray-200">
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-2xl border border-gray-200 bg-gray-50 flex items-center justify-center">
                 <img
                   src={image}
                   alt={title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
-                <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/10 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/10 to-transparent pointer-events-none" />
               </div>
               <div className="absolute -bottom-3 -right-3 w-48 h-48 bg-blue-400/20 rounded-full blur-3xl -z-10" />
               <div className="absolute -top-3 -left-3 w-32 h-32 bg-purple-400/20 rounded-full blur-2xl -z-10" />

@@ -15,11 +15,11 @@ const ContentSection = ({ title, content, image, imagePosition = 'right', varian
             {content}
           </p>
           {image && (
-            <div className="mt-4">
+            <div className="mt-4 bg-gray-50 rounded-lg p-2">
               <img
                 src={image}
                 alt={title}
-                className="w-full max-h-64 object-cover rounded-lg shadow-sm"
+                className="w-full max-h-80 object-contain rounded-lg shadow-sm mx-auto"
               />
             </div>
           )}
@@ -51,11 +51,11 @@ const ContentSection = ({ title, content, image, imagePosition = 'right', varian
               </p>
             </div>
             <div className={isImageLeft ? 'lg:col-start-1 lg:row-start-1' : ''}>
-              <div className="rounded-xl overflow-hidden shadow-lg border border-gray-200">
+              <div className="rounded-xl overflow-hidden shadow-lg border border-gray-200 bg-gray-50">
                 <img
                   src={image}
                   alt={title}
-                  className="w-full h-64 object-cover"
+                  className="w-full h-auto max-h-96 object-contain"
                 />
               </div>
             </div>
