@@ -1,8 +1,21 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
-const ContentSection = ({ title, content, image, imagePosition = 'right', variant = 'default' }) => {
+const ContentSection = ({ title, content, image, imageStyle = 'cover', imagePosition = 'right', variant = 'default' }) => {
   const isImageLeft = imagePosition === 'left';
+
+  // Determinar clases CSS según el estilo
+  const getImageClasses = () => {
+    switch(imageStyle) {
+      case 'contain':
+        return 'w-full h-auto max-h-96 object-contain';
+      case 'original':
+        return 'w-full h-auto';
+      case 'cover':
+      default:
+        return 'w-full h-64 object-cover';
+    }
+  };
 
   if (variant === 'card') {
     return (
@@ -15,11 +28,11 @@ const ContentSection = ({ title, content, image, imagePosition = 'right', varian
             {content}
           </p>
           {image && (
-            <div className="mt-4 bg-gray-50 rounded-lg p-2">
+            <div className={`mt-4 rounded-lg ${imageStyle === 'cover' ? '' : 'bg-gray-50 p-2'}`}>
               <img
                 src={image}
                 alt={title}
-                className="w-full max-h-80 object-contain rounded-lg shadow-sm mx-auto"
+                className={`${getImageClasses()} rounded-lg shadow-sm mx-auto`}
               />
             </div>
           )}
@@ -51,11 +64,11 @@ const ContentSection = ({ title, content, image, imagePosition = 'right', varian
               </p>
             </div>
             <div className={isImageLeft ? 'lg:col-start-1 lg:row-start-1' : ''}>
-              <div className="rounded-xl overflow-hidden shadow-lg border border-gray-200 bg-gray-50">
+              <div className={`rounded-xl overflow-hidden shadow-lg border border-gray-200 ${imageStyle === 'cover' ? '' : 'bg-gray-50'}`}>
                 <img
                   src={image}
                   alt={title}
-                  className="w-full h-auto max-h-96 object-contain"
+                  className={getImageClasses()}
                 />
               </div>
             </div>

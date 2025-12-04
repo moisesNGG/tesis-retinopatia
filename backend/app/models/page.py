@@ -6,6 +6,7 @@ class Section(BaseModel):
     title: str
     content: str
     image: Optional[str] = None
+    imageStyle: Optional[str] = "cover"  # "contain", "cover", "original"
     order: int = 0
 
 class PageBase(BaseModel):
@@ -13,6 +14,7 @@ class PageBase(BaseModel):
     title: str
     subtitle: Optional[str] = ""
     heroImage: Optional[str] = None
+    heroImageStyle: Optional[str] = "cover"  # "contain", "cover", "original"
     sections: List[Section] = []
     metaDescription: Optional[str] = ""
     isPublished: bool = True
@@ -24,6 +26,7 @@ class PageUpdate(BaseModel):
     title: Optional[str] = None
     subtitle: Optional[str] = None
     heroImage: Optional[str] = None
+    heroImageStyle: Optional[str] = None
     sections: Optional[List[Section]] = None
     metaDescription: Optional[str] = None
     isPublished: Optional[bool] = None

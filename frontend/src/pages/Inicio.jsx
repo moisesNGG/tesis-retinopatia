@@ -61,6 +61,7 @@ const Inicio = () => {
         title={pageData.title}
         subtitle={pageData.subtitle}
         image={pageData.heroImage}
+        imageStyle={pageData.heroImageStyle || 'cover'}
       />
 
       <div className="bg-gradient-to-b from-white to-gray-50">
@@ -72,6 +73,7 @@ const Inicio = () => {
               title={section.title}
               content={section.content}
               image={section.image}
+              imageStyle={section.imageStyle || 'cover'}
               imagePosition={index % 2 === 0 ? 'right' : 'left'}
             />
           ))}

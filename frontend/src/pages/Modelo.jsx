@@ -71,6 +71,7 @@ const Modelo = () => {
         title={pageData.title}
         subtitle={pageData.subtitle}
         image={pageData.heroImage}
+        imageStyle={pageData.heroImageStyle || 'cover'}
         ctaText="Probar el Modelo"
         ctaLink="/proceso"
       />

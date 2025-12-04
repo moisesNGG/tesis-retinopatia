@@ -3,7 +3,19 @@ import { Button } from '../ui/button';
 import { ArrowRight, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const Hero = ({ title, subtitle, image, ctaText = "Comenzar Análisis", ctaLink = "/proceso" }) => {
+const Hero = ({ title, subtitle, image, imageStyle = "cover", ctaText = "Comenzar Análisis", ctaLink = "/proceso" }) => {
+  // Determinar clases CSS según el estilo
+  const getImageClasses = () => {
+    switch(imageStyle) {
+      case 'contain':
+        return 'w-full h-full object-contain';
+      case 'original':
+        return 'w-full h-auto';
+      case 'cover':
+      default:
+        return 'w-full h-full object-cover';
+    }
+  };
   return (
     <section className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50/30 py-10 md:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -40,11 +52,11 @@ const Hero = ({ title, subtitle, image, ctaText = "Comenzar Análisis", ctaLink 
 
           {image && (
             <div className="relative lg:pl-8">
-              <div className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-2xl border border-gray-200 bg-gray-50 flex items-center justify-center">
+              <div className={`relative ${imageStyle === 'original' ? '' : 'aspect-[4/3]'} rounded-xl overflow-hidden shadow-2xl border border-gray-200 bg-gray-50 flex items-center justify-center`}>
                 <img
                   src={image}
                   alt={title}
-                  className="w-full h-full object-contain"
+                  className={getImageClasses()}
                 />
                 <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/10 to-transparent pointer-events-none" />
               </div>
