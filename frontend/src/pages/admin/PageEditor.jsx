@@ -271,23 +271,42 @@ const PageEditor = () => {
                     </div>
 
                     {section.image && (
-                      <div>
-                        <Label>Estilo de Imagen</Label>
-                        <select
-                          value={section.imageStyle || 'cover'}
-                          onChange={(e) =>
-                            updateSection(index, 'imageStyle', e.target.value)
-                          }
-                          className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                        >
-                          <option value="cover">Llenar (recorta si es necesario)</option>
-                          <option value="contain">Ajustar (muestra completa)</option>
-                          <option value="original">Original (sin restricciones)</option>
-                        </select>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Controla cómo se muestra esta imagen
-                        </p>
-                      </div>
+                      <>
+                        <div>
+                          <Label>Posición de Imagen</Label>
+                          <select
+                            value={section.layout || 'horizontal'}
+                            onChange={(e) =>
+                              updateSection(index, 'layout', e.target.value)
+                            }
+                            className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                          >
+                            <option value="horizontal">Al lado del texto</option>
+                            <option value="vertical">Debajo del texto</option>
+                          </select>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Dónde se muestra la imagen respecto al texto
+                          </p>
+                        </div>
+
+                        <div>
+                          <Label>Estilo de Imagen</Label>
+                          <select
+                            value={section.imageStyle || 'cover'}
+                            onChange={(e) =>
+                              updateSection(index, 'imageStyle', e.target.value)
+                            }
+                            className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                          >
+                            <option value="cover">Llenar (recorta si es necesario)</option>
+                            <option value="contain">Ajustar (muestra completa)</option>
+                            <option value="original">Original (sin restricciones)</option>
+                          </select>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Controla cómo se muestra esta imagen
+                          </p>
+                        </div>
+                      </>
                     )}
                   </div>
                 ))

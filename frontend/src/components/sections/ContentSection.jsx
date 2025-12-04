@@ -1,8 +1,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
-const ContentSection = ({ title, content, image, imageStyle = 'cover', imagePosition = 'right', variant = 'default' }) => {
+const ContentSection = ({ title, content, image, imageStyle = 'cover', imagePosition = 'right', layout = 'horizontal', variant = 'default' }) => {
   const isImageLeft = imagePosition === 'left';
+  const isVertical = layout === 'vertical';
 
   // Determinar clases CSS según el estilo
   const getImageClasses = () => {
@@ -53,7 +54,27 @@ const ContentSection = ({ title, content, image, imageStyle = 'cover', imagePosi
               {content}
             </p>
           </div>
+        ) : isVertical ? (
+          // Layout vertical: imagen debajo del texto
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                {title}
+              </h2>
+              <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
+                {content}
+              </p>
+            </div>
+            <div className={`rounded-xl overflow-hidden shadow-lg border border-gray-200 ${imageStyle === 'cover' ? '' : 'bg-gray-50'}`}>
+              <img
+                src={image}
+                alt={title}
+                className={getImageClasses()}
+              />
+            </div>
+          </div>
         ) : (
+          // Layout horizontal: imagen al lado del texto
           <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 items-center ${isImageLeft ? 'lg:grid-flow-dense' : ''}`}>
             <div className={isImageLeft ? 'lg:col-start-2' : ''}>
               <h2 className="text-2xl font-bold text-gray-900 mb-3">

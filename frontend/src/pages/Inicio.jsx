@@ -74,6 +74,7 @@ const Inicio = () => {
               content={section.content}
               image={section.image}
               imageStyle={section.imageStyle || 'cover'}
+              layout={section.layout || 'horizontal'}
               imagePosition={index % 2 === 0 ? 'right' : 'left'}
             />
           ))}

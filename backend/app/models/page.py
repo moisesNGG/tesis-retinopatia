@@ -7,6 +7,7 @@ class Section(BaseModel):
     content: str
     image: Optional[str] = None
     imageStyle: Optional[str] = "cover"  # "contain", "cover", "original"
+    layout: Optional[str] = "horizontal"  # "horizontal" (lado), "vertical" (debajo)
     order: int = 0
 
 class PageBase(BaseModel):
