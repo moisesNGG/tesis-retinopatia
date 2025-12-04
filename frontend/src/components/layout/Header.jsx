@@ -20,7 +20,7 @@ const Header = () => {
         <div className="flex h-14 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img
-              src="http://localhost:8000/uploads/logo.png"
+              src="/uploads/logo.png"
               alt="RetinaVision AI Logo"
               className="h-10 w-10 object-contain"
             />

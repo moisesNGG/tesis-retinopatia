@@ -24,6 +24,9 @@ COPY backend/ .
 # Copiar frontend pre-compilado desde la carpeta public (ya compilado localmente)
 COPY public/ /app/public/
 
+# Copiar carpeta uploads (logo y recursos estáticos)
+COPY uploads/ /app/uploads/
+
 # Verificar que se copiaron los archivos del frontend
 RUN echo "[FRONTEND COPY CHECK]" && ls -la /app/public/ && echo "[OK] Frontend files copiados"
 
