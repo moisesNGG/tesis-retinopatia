@@ -1,17 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install:*)",
-      "Bash(mkdir:*)",
+      "Bash(tree:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
       "Bash(npm run build:*)",
-      "Bash(timeout 30 npm start)",
-      "Bash(timeout 40 npm start:*)",
-      "Bash(cat:*)",
-      "Bash(echo:*)",
+      "Bash(python migrate_db.py:*)",
+      "Bash(find:*)",
+      "Bash(git -C:*)",
+      "Bash(du:*)",
+      "Bash(ls:*)",
+      "Bash(git status:*)",
+      "Bash(git lfs install:*)",
+      "Bash(git lfs track:*)",
       "Bash(pip install:*)",
-      "Bash(pip uninstall:*)",
-      "Bash(python init_db.py:*)",
-      "Bash(timeout 15 python:*)"
+      "Bash(set:*)",
+      "Bash(python -m uvicorn:*)",
+      "Bash(export MODELS_DIR=\"C:/Users/moise/Documents/git-2/tesis-rinopatia/backend/models_weights\")"
     ],
     "deny": [],
     "ask": []

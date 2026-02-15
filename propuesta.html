@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentacion Tecnica - RetinaVision AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        /* Ocultar encabezados y pies de pagina del navegador al imprimir */
+        @media print {
+            @page {
+                margin: 20mm 20mm 20mm 20mm;
+            }
+
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 40px;
+            text-align: center;
+            border-bottom: 4px solid #34495e;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .content {
+            padding: 50px 60px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            page-break-inside: avoid;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #34495e;
+        }
+
+        .section h3 {
+            color: #34495e;
+            font-size: 1.2rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .section p {
+            margin-bottom: 15px;
+            text-align: justify;
+            font-size: 1rem;
+            color: #4a4a4a;
+        }
+
+        .section ul {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+
+        .section li {
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+
+        .tech-list {
+            margin-top: 20px;
+        }
+
+        .tech-item {
+            background: #fafafa;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #34495e;
+        }
+
+        .tech-item h4 {
+            color: #2c3e50;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .tech-item p {
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 0;
+        }
+
+        .architecture-section {
+            background: #fafafa;
+            padding: 25px;
+            margin: 25px 0;
+            border: 1px solid #ddd;
+        }
+
+        .architecture-item {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #34495e;
+        }
+
+        .architecture-item h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .architecture-item p {
+            color: #555;
+            font-size: 0.95rem;
+            margin-bottom: 0;
+        }
+
+        .rationale-box {
+            background: #f9f9f9;
+            padding: 25px;
+            margin: 25px 0;
+            border: 1px solid #ddd;
+        }
+
+        .rationale-box h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .model-placeholder {
+            background: #fffbf0;
+            border: 2px dashed #d4a574;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .model-placeholder h4 {
+            color: #8b6914;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .model-placeholder p {
+            color: #666;
+        }
+
+        .download-section {
+            text-align: center;
+            padding: 50px 40px;
+            background: #2c3e50;
+            margin-top: 50px;
+        }
+
+        .download-section h2 {
+            color: white;
+            border: none;
+            margin-bottom: 15px;
+        }
+
+        .download-section p {
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 30px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: white;
+            color: #2c3e50;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-decoration: none;
+            border: 2px solid white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .download-btn:hover {
+            background: #2c3e50;
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #ddd;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                margin: 0;
+            }
+
+            .content {
+                padding: 20px 20px 30px 20px;
+            }
+
+            .download-section {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 30px 25px;
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RetinaVision AI</h1>
+            <p>Documentacion Tecnica del Sistema Web</p>
+            <p style="font-size: 0.9rem; margin-top: 10px;">Proyecto de Tesis - Deteccion de Retinopatia Diabetica</p>
+        </header>
+
+        <div class="content">
+            <!-- Introduccion -->
+            <div class="section">
+                <h2>1. Introduccion</h2>
+                <p>
+                    Este documento presenta la arquitectura tecnica del sistema web desarrollado para el proyecto de tesis
+                    de deteccion de Retinopatia Diabetica mediante inteligencia artificial. El sistema permite a usuarios
+                    cargar imagenes de fondo de ojo y obtener un analisis automatizado del nivel de severidad de la enfermedad.
+                </p>
+                <p>
+                    La plataforma web fue desarrollada utilizando tecnologias modernas que garantizan escalabilidad,
+                    rendimiento y facilidad de uso, tanto para pacientes como para profesionales medicos.
+                </p>
+            </div>
+
+            <!-- Frontend -->
+            <div class="section">
+                <h2>2. Interfaz de Usuario (Frontend)</h2>
+                <p>
+                    La interfaz visual del sistema esta construida con tecnologias web modernas que garantizan una
+                    experiencia fluida, responsiva y accesible desde cualquier dispositivo (computadoras, tablets, smartphones).
+                </p>
+
+                <div class="tech-list">
+                    <div class="tech-item">
+                        <h4>React 19</h4>
+                        <p>
+                            Libreria de JavaScript desarrollada por Meta (Facebook) para construir interfaces de usuario
+                            interactivas y dinamicas. Permite crear componentes reutilizables y manejar el estado de la
+                            aplicacion de forma eficiente, resultando en una experiencia de usuario fluida similar a
+                            aplicaciones nativas.
+                        </p>
+                    </div>
+
+                    <div class="tech-item">
+                        <h4>Tailwind CSS</h4>
+                        <p>
+                            Framework de estilos CSS que permite diseñar interfaces modernas de forma rapida y consistente
+                            mediante clases utilitarias. Garantiza que todos los elementos visuales mantengan un diseño
+                            coherente en toda la aplicacion.
+                        </p>
+                    </div>
+
+                    <div class="tech-item">
+                        <h4>Biblioteca de Componentes (Radix UI + shadcn/ui)</h4>
+                        <p>
+                            Conjunto de componentes de interfaz pre-construidos (botones, formularios, dialogos, tablas)
+                            que cumplen con estandares de accesibilidad web (WCAG). Esto asegura que el sistema sea
+                            utilizable por personas con diferentes capacidades y desde distintos dispositivos.
+                        </p>
+                    </div>
+
+                    <div class="tech-item">
+                        <h4>React Router</h4>
+                        <p>
+                            Sistema de navegacion que permite crear una aplicacion de pagina unica (Single Page Application).
+                            El usuario puede navegar entre diferentes secciones sin que la pagina se recargue completamente,
+                            mejorando significativamente la velocidad de respuesta.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backend -->
+            <div class="section">
+                <h2>3. Servidor y API (Backend)</h2>
+                <p>
+                    El backend es el nucleo logico del sistema. Procesa las peticiones del frontend, gestiona el acceso
+                    a la base de datos y coordina la comunicacion con el modelo de inteligencia artificial.
+                </p>
+
+                <div class="tech-list">
+                    <div class="tech-item">
+                        <h4>FastAPI (Python)</h4>
+                        <p>
+                            Framework web moderno para Python que permite crear APIs REST de alto rendimiento. FastAPI
+                            fue seleccionado por su velocidad (comparable a frameworks en NodeJS y Go), su capacidad
+                            para validar datos automaticamente y su excelente integracion con bibliotecas de Machine Learning
+                            como TensorFlow, PyTorch y scikit-learn.
+                        </p>
+                    </div>
+
+                    <div class="tech-item">
+                        <h4>API REST (Comunicacion Frontend-Backend)</h4>
+                        <p>
+                            El frontend se comunica con el backend mediante peticiones HTTP siguiendo el estandar REST
+                            (Representational State Transfer). Los datos se intercambian en formato JSON, un formato
+                            ligero y universalmente soportado. Esta arquitectura permite separar completamente la
+                            interfaz visual del procesamiento de datos.
+                        </p>
+                    </div>
+
+                    <div class="tech-item">
+                        <h4>Motor de Asincronismo</h4>
+                        <p>
+                            FastAPI utiliza programacion asincrona (async/await) que permite procesar multiples peticiones
+                            simultaneamente sin bloquear el servidor. Esto es especialmente importante cuando el modelo
+                            de IA esta procesando una imagen, ya que otros usuarios pueden seguir utilizando el sistema
+                            sin experimentar demoras.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Base de Datos -->
+            <div class="section">
+                <h2>4. Base de Datos</h2>
+
+                <div class="tech-item">
+                    <h4>MongoDB</h4>
+                    <p>
+                        Base de datos NoSQL orientada a documentos. A diferencia de bases de datos relacionales tradicionales
+                        (SQL), MongoDB almacena informacion en formato JSON flexible, lo que facilita almacenar datos
+                        semi-estructurados como contenido de paginas web, imagenes y resultados de analisis.
+                    </p>
+                    <p style="margin-top: 10px;">
+                        La base de datos almacena: contenido editable de las paginas del sitio web, metadatos de imagenes
+                        analizadas, y opcionalmente un historial de predicciones para analisis estadistico posterior.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modelo de IA -->
+            <div class="section">
+                <h2>5. Modelo de Inteligencia Artificial</h2>
+                <p>
+                    El componente central del sistema es un modelo de Deep Learning (aprendizaje profundo) entrenado
+                    especificamente para detectar y clasificar Retinopatia Diabetica en imagenes de fondo de ojo.
+                </p>
+
+                <h3>5.1 Flujo de Procesamiento</h3>
+                <p>
+                    El proceso de analisis sigue los siguientes pasos:
+                </p>
+                <ol style="margin-left: 30px; margin-bottom: 20px;">
+                    <li>El usuario carga una imagen del fondo de ojo desde la interfaz web</li>
+                    <li>El frontend envia la imagen al backend mediante una peticion HTTP POST</li>
+                    <li>El backend valida el formato de la imagen y la envia al modelo de IA</li>
+                    <li>El modelo preprocesa la imagen (redimensionamiento, normalizacion)</li>
+                    <li>El modelo procesa la imagen a traves de su red neuronal</li>
+                    <li>Se genera una prediccion con el nivel de severidad y un porcentaje de confianza</li>
+                    <li>El resultado se envia de vuelta al frontend</li>
+                    <li>El usuario visualiza el resultado con recomendaciones clinicas</li>
+                </ol>
+
+                <h3>5.2 Clasificacion de Severidad</h3>
+                <p>
+                    El modelo clasifica las imagenes en 5 categorias segun la escala clinica estandar:
+                </p>
+                <ul style="margin-left: 30px;">
+                    <li><strong>Sin Retinopatia:</strong> No se detectan signos de la enfermedad</li>
+                    <li><strong>Retinopatia Diabetica Leve:</strong> Presencia minima de microaneurismas</li>
+                    <li><strong>Retinopatia Diabetica Moderada:</strong> Multiples microaneurismas y hemorragias</li>
+                    <li><strong>Retinopatia Diabetica Severa:</strong> Hemorragias extensas y anomalias vasculares</li>
+                    <li><strong>Retinopatia Diabetica Proliferativa:</strong> Neovascularizacion y riesgo alto de perdida visual</li>
+                </ul>
+
+                <div class="model-placeholder">
+                    <h4>Especificaciones Tecnicas del Modelo (A Completar)</h4>
+                    <p><strong>Esta seccion sera completada con los detalles especificos del modelo entrenado:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Arquitectura de red neuronal utilizada (ResNet, VGG, EfficientNet, DenseNet, etc.)</li>
+                        <li>Dataset utilizado para entrenamiento (nombre, numero de imagenes, distribucion de clases)</li>
+                        <li>Metricas de rendimiento del modelo:
+                            <ul style="margin-left: 20px; margin-top: 5px;">
+                                <li>Accuracy (precision global)</li>
+                                <li>Precision, Recall y F1-Score por clase</li>
+                                <li>Matriz de confusion</li>
+                                <li>AUC-ROC</li>
+                            </ul>
+                        </li>
+                        <li>Tecnicas de preprocesamiento de imagenes aplicadas</li>
+                        <li>Tecnicas de data augmentation utilizadas durante entrenamiento</li>
+                        <li>Hiperparametros del modelo (learning rate, batch size, epocas, optimizer)</li>
+                        <li>Umbrales de confianza para clasificacion</li>
+                        <li>Tiempo promedio de inferencia por imagen</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Infraestructura -->
+            <div class="section">
+                <h2>6. Infraestructura y Arquitectura de Deployment</h2>
+                <p>
+                    El sistema esta desplegado en Railway, una plataforma cloud que permite deployment automatico
+                    desde repositorios Git. La arquitectura sigue un patron de microservicios donde cada componente
+                    funciona de forma independiente.
+                </p>
+
+                <div class="architecture-section">
+                    <h3>6.1 Arquitectura de Servicios</h3>
+
+                    <div class="architecture-item">
+                        <h4>Servicio 1: Aplicacion Web (Frontend + Backend)</h4>
+                        <p>
+                            Contenedor Docker que incluye la aplicacion React compilada y el servidor FastAPI ejecutandose
+                            en un solo servicio. El backend sirve los archivos estaticos del frontend y expone la API REST.
+                            Esta consolidacion simplifica el deployment y reduce costos operativos sin sacrificar rendimiento.
+                        </p>
+                    </div>
+
+                    <div class="architecture-item">
+                        <h4>Servicio 2: Base de Datos MongoDB</h4>
+                        <p>
+                            Instancia independiente de MongoDB ejecutandose en un contenedor separado. La separacion de
+                            la base de datos permite:
+                        </p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Escalamiento independiente de recursos computacionales</li>
+                            <li>Implementacion de backups automaticos sin afectar la aplicacion</li>
+                            <li>Configuracion de replicas para alta disponibilidad</li>
+                            <li>Persistencia de datos incluso si se actualiza la aplicacion</li>
+                        </ul>
+                    </div>
+
+                    <div class="architecture-item">
+                        <h4>Servicio 3: Microservicio de Inteligencia Artificial</h4>
+                        <p>
+                            Servicio independiente dedicado exclusivamente al modelo de Deep Learning. Esta separacion
+                            arquitectonica permite:
+                        </p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Asignacion de recursos computacionales especificos (CPU/GPU optimizada para ML)</li>
+                            <li>Escalamiento horizontal (multiples instancias del modelo en paralelo)</li>
+                            <li>Actualizacion del modelo sin reiniciar la aplicacion web</li>
+                            <li>Monitoreo independiente del rendimiento del modelo</li>
+                            <li>Posibilidad de implementar A/B testing entre versiones del modelo</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="rationale-box">
+                    <h4>6.2 Justificacion de la Arquitectura Seleccionada</h4>
+
+                    <h4 style="font-size: 1rem; margin-top: 20px; margin-bottom: 10px;">Separacion de Servicios</h4>
+                    <p>
+                        La arquitectura de microservicios permite que cada componente del sistema tenga responsabilidades
+                        especificas y bien definidas. Esto facilita el mantenimiento a largo plazo y permite que diferentes
+                        equipos trabajen en componentes distintos sin interferencias.
+                    </p>
+
+                    <h4 style="font-size: 1rem; margin-top: 20px; margin-bottom: 10px;">Escalabilidad Independiente</h4>
+                    <p>
+                        En escenarios de alta demanda, es probable que el modelo de IA requiera mas recursos computacionales
+                        que el frontend o la base de datos. La arquitectura permite escalar unicamente el componente que
+                        lo necesite, optimizando costos. Por ejemplo, se pueden añadir multiples instancias del servicio
+                        de IA con GPUs mientras el frontend mantiene sus recursos actuales.
+                    </p>
+
+                    <h4 style="font-size: 1rem; margin-top: 20px; margin-bottom: 10px;">Alta Disponibilidad y Resiliencia</h4>
+                    <p>
+                        Si un servicio presenta fallas, los demas pueden continuar operando. Por ejemplo, si el modelo
+                        de IA requiere actualizacion o mantenimiento, el sitio web puede seguir funcionando y mostrar
+                        un mensaje apropiado, en lugar de que toda la aplicacion quede inaccesible.
+                    </p>
+
+                    <h4 style="font-size: 1rem; margin-top: 20px; margin-bottom: 10px;">Optimizacion de Costos</h4>
+                    <p>
+                        Railway cobra segun el uso real de recursos (CPU, memoria, ancho de banda). Al tener servicios
+                        separados, se puede:
+                    </p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Asignar recursos costosos (GPU) solo al servicio de IA</li>
+                        <li>Escalar automaticamente segun demanda (auto-scaling)</li>
+                        <li>Monitorear y optimizar el consumo de cada servicio independientemente</li>
+                    </ul>
+
+                    <h4 style="font-size: 1rem; margin-top: 20px; margin-bottom: 10px;">Rendimiento del Modelo de IA</h4>
+                    <p>
+                        El procesamiento de imagenes con redes neuronales profundas es computacionalmente intensivo.
+                        Al tener un microservicio dedicado, se puede:
+                    </p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Utilizar hardware especializado (GPUs NVIDIA para inferencia rapida)</li>
+                        <li>Implementar colas de procesamiento para manejar multiples peticiones</li>
+                        <li>Cachear resultados de imagenes procesadas previamente</li>
+                        <li>No afectar el rendimiento del frontend durante procesos intensivos</li>
+                    </ul>
+
+                    <h4 style="font-size: 1rem; margin-top: 20px; margin-bottom: 10px;">Deployment Continuo</h4>
+                    <p>
+                        Railway se integra con repositorios Git (GitHub, GitLab) para realizar deployment automatico
+                        cada vez que se actualiza el codigo. Esto permite:
+                    </p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Actualizaciones rapidas sin downtime</li>
+                        <li>Rollback automatico en caso de errores</li>
+                        <li>Testing automatizado antes de deployment a produccion</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Tecnologias Seleccionadas -->
+            <div class="section">
+                <h2>7. Justificacion de las Tecnologias Seleccionadas</h2>
+
+                <div class="rationale-box">
+                    <h4 style="margin-bottom: 20px;">Criterios de Seleccion Tecnica</h4>
+
+                    <h4 style="font-size: 1rem; margin-bottom: 10px;">React + Tailwind CSS</h4>
+                    <p>
+                        React es la biblioteca de JavaScript mas utilizada en la industria (segun Stack Overflow Survey 2024),
+                        con una comunidad activa de millones de desarrolladores, documentacion extensa y ecosistema
+                        maduro. Tailwind CSS permite desarrollo rapido sin requerir experiencia profunda en CSS tradicional.
+                    </p>
+
+                    <h4 style="font-size: 1rem; margin-top: 20px; margin-bottom: 10px;">FastAPI (Python)</h4>
+                    <p>
+                        Python es el lenguaje dominante en ciencia de datos y Machine Learning. FastAPI fue seleccionado
+                        por ser el framework web mas rapido de Python (comparable a NodeJS y Go en benchmarks), con
+                        validacion automatica de datos mediante Pydantic y generacion automatica de documentacion interactiva
+                        (Swagger/OpenAPI). Su sintaxis moderna con async/await permite manejar multiples peticiones
+                        concurrentes eficientemente.
+                    </p>
+
+                    <h4 style="font-size: 1rem; margin-top: 20px; margin-bottom: 10px;">MongoDB</h4>
+                    <p>
+                        MongoDB fue seleccionado por su flexibilidad para almacenar datos semi-estructurados sin necesidad
+                        de definir esquemas rigidos. Esto es particularmente util para:
+                    </p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Almacenar contenido variable de paginas web (CMS)</li>
+                        <li>Guardar metadatos de imagenes de diferentes formatos</li>
+                        <li>Facilitar iteraciones rapidas durante el desarrollo</li>
+                        <li>Excelente rendimiento en operaciones de lectura (importante para cargar contenido web)</li>
+                    </ul>
+
+                    <h4 style="font-size: 1rem; margin-top: 20px; margin-bottom: 10px;">Docker</h4>
+                    <p>
+                        Docker garantiza que el sistema funcione de forma identica en desarrollo y produccion, eliminando
+                        el clasico problema "funciona en mi maquina". Los contenedores Docker encapsulan todas las
+                        dependencias necesarias, facilitando el deployment y reduciendo conflictos de versiones.
+                    </p>
+
+                    <h4 style="font-size: 1rem; margin-top: 20px; margin-bottom: 10px;">Railway (Plataforma Cloud)</h4>
+                    <p>
+                        Railway fue seleccionado por:
+                    </p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Simplicidad: No requiere conocimientos avanzados de DevOps o infraestructura cloud</li>
+                        <li>Deployment automatico desde Git con un solo click</li>
+                        <li>Certificados SSL gratuitos y automaticos (HTTPS)</li>
+                        <li>Facturacion por uso real (pay-as-you-go), ideal para proyectos academicos</li>
+                        <li>Soporte nativo para Docker y multiples lenguajes</li>
+                        <li>Logs centralizados y monitoreo incluido</li>
+                    </ul>
+
+                    <h4 style="font-size: 1rem; margin-top: 20px; margin-bottom: 10px;">Arquitectura de Microservicios</h4>
+                    <p>
+                        Aunque este es un proyecto academico, la arquitectura de microservicios refleja las mejores
+                        practicas de la industria moderna (utilizada por empresas como Netflix, Amazon, Uber). Esta
+                        decision arquitectonica:
+                    </p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Demuestra comprension de patrones de diseño de software profesional</li>
+                        <li>Facilita futuras expansiones del sistema (añadir mas modelos, nuevas funcionalidades)</li>
+                        <li>Permite trabajar en componentes de forma independiente</li>
+                        <li>Es escalable para posibles implementaciones clinicas reales</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Flujo de Trabajo -->
+            <div class="section">
+                <h2>8. Flujo Completo del Sistema</h2>
+                <p>
+                    A continuacion se describe el flujo completo desde que un usuario accede al sistema hasta
+                    que recibe el resultado del analisis:
+                </p>
+
+                <div class="architecture-section">
+                    <div class="architecture-item">
+                        <h4>Paso 1: Acceso a la Aplicacion Web</h4>
+                        <p>
+                            El usuario accede a la URL del sistema desde su navegador web. Railway envia la aplicacion
+                            React al navegador del usuario, donde se renderiza la interfaz completa.
+                        </p>
+                    </div>
+
+                    <div class="architecture-item">
+                        <h4>Paso 2: Carga de Imagen</h4>
+                        <p>
+                            El usuario selecciona una imagen de fondo de ojo desde su dispositivo. La imagen es validada
+                            en el frontend (formato, tamaño) antes de ser enviada.
+                        </p>
+                    </div>
+
+                    <div class="architecture-item">
+                        <h4>Paso 3: Transmision al Backend</h4>
+                        <p>
+                            La imagen se envia desde React al backend FastAPI mediante una peticion HTTP POST.
+                            La imagen se transmite en formato multipart/form-data.
+                        </p>
+                    </div>
+
+                    <div class="architecture-item">
+                        <h4>Paso 4: Validacion en Backend</h4>
+                        <p>
+                            FastAPI valida el tipo de archivo, tamaño y formato de la imagen. Si la validacion falla,
+                            se retorna un mensaje de error al usuario.
+                        </p>
+                    </div>
+
+                    <div class="architecture-item">
+                        <h4>Paso 5: Envio al Modelo de IA</h4>
+                        <p>
+                            El backend envia la imagen al microservicio de IA mediante una peticion HTTP interna.
+                            El modelo recibe la imagen y comienza el procesamiento.
+                        </p>
+                    </div>
+
+                    <div class="architecture-item">
+                        <h4>Paso 6: Procesamiento por el Modelo</h4>
+                        <p>
+                            El modelo de Deep Learning preprocesa la imagen (redimensionamiento, normalizacion),
+                            la pasa a traves de su red neuronal y genera una prediccion con el nivel de severidad
+                            y el porcentaje de confianza.
+                        </p>
+                    </div>
+
+                    <div class="architecture-item">
+                        <h4>Paso 7: Retorno de Resultados</h4>
+                        <p>
+                            El modelo retorna los resultados al backend, que los formatea y agrega recomendaciones
+                            clinicas basadas en la severidad detectada.
+                        </p>
+                    </div>
+
+                    <div class="architecture-item">
+                        <h4>Paso 8: Almacenamiento (Opcional)</h4>
+                        <p>
+                            El backend puede guardar en MongoDB un registro del analisis (sin datos personales
+                            identificables) para analisis estadistico posterior.
+                        </p>
+                    </div>
+
+                    <div class="architecture-item">
+                        <h4>Paso 9: Visualizacion de Resultados</h4>
+                        <p>
+                            El frontend recibe el resultado y lo muestra al usuario de forma clara, incluyendo
+                            el diagnostico, el nivel de confianza, y las recomendaciones medicas pertinentes.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consideraciones Tecnicas -->
+            <div class="section">
+                <h2>9. Consideraciones Tecnicas Adicionales</h2>
+
+                <h3>9.1 Seguridad</h3>
+                <ul>
+                    <li>Todas las comunicaciones se realizan a traves de HTTPS (SSL/TLS)</li>
+                    <li>Validacion estricta de tipos de archivo para prevenir ataques de inyeccion</li>
+                    <li>Limites de tamaño de archivo para prevenir ataques de denegacion de servicio</li>
+                    <li>Las imagenes procesadas no se almacenan permanentemente para proteger privacidad</li>
+                </ul>
+
+                <h3>9.2 Rendimiento</h3>
+                <ul>
+                    <li>Frontend compilado y minificado para carga rapida</li>
+                    <li>Lazy loading de componentes React para reducir tiempo inicial de carga</li>
+                    <li>Compresion de imagenes antes de transmision</li>
+                    <li>Cache de recursos estaticos en el navegador</li>
+                    <li>Procesamiento asincrono para evitar bloqueo del servidor</li>
+                </ul>
+
+                <h3>9.3 Escalabilidad</h3>
+                <ul>
+                    <li>Arquitectura diseñada para escalar horizontalmente (añadir mas instancias)</li>
+                    <li>Base de datos MongoDB puede configurarse con replicas para alta disponibilidad</li>
+                    <li>Posibilidad de implementar balanceador de carga para multiples instancias del modelo</li>
+                    <li>Cola de procesamiento para manejar picos de trafico</li>
+                </ul>
+            </div>
+
+            <!-- Conclusion -->
+            <div class="section">
+                <h2>10. Resultado</h2>
+                <p>
+                    El sistema RetinaVision AI representa una implementacion moderna y escalable de una aplicacion
+                    web medica que integra inteligencia artificial. La arquitectura seleccionada combina tecnologias
+                    probadas en la industria con practicas de diseño que garantizan mantenibilidad, escalabilidad
+                    y rendimiento.
+                </p>
+                <p>
+                    La separacion en microservicios permite que cada componente del sistema pueda evolucionar
+                    independientemente, facilitando futuras mejoras del modelo de IA, expansion de funcionalidades
+                    o integracion con sistemas hospitalarios existentes.
+                </p>
+                <p>
+                    La seleccion de tecnologias open-source (React, FastAPI, MongoDB) asegura que el proyecto
+                    pueda ser mantenido y mejorado a largo plazo sin dependencias de software propietario,
+                    alineandose con los principios de investigacion academica abierta y reproducible.
+                </p>
+            </div>
+        </div>
+
+        <div class="download-section">
+            <h2>Documentacion Completa en PDF</h2>
+            <p>
+                Al hacer clic se abrira la opcion de imprimir. Seleccione "Guardar como PDF" para descargar el documento.
+            </p>
+            <button type="button" class="download-btn" onclick="window.print()">
+                Descargar PDF
+            </button>
+        </div>
+
+        <footer>
+            <p>RetinaVision AI - Proyecto de Tesis 2024</p>
+            <p>Sistema Web para Deteccion Automatizada de Retinopatia Diabetica</p>
+        </footer>
+    </div>
+</body>
+</html>
