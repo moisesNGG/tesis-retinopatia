@@ -29,6 +29,12 @@ app.add_middleware(
 async def startup_event():
     """Ejecutar al iniciar la aplicacion"""
     await connect_to_mongo()
+
+    # Cargar modelos de IA
+    from app.services.model_service import model_service
+    models_dir = os.environ.get("MODELS_DIR", "/app/models_weights")
+    model_service.load_all_models(models_dir)
+
     print(f"[OK] {settings.APP_NAME} v{settings.VERSION} iniciado")
 
 @app.on_event("shutdown")

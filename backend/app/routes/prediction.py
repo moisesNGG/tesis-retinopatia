@@ -1,104 +1,83 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.models.prediction import PredictionResponse
-import random
+from app.models.prediction import (
+    SingleModelResult,
+    ConsensusResult,
+    MultiModelPredictionResponse,
+)
+from app.services.model_service import model_service
+from collections import Counter
 
 router = APIRouter(prefix="/predict", tags=["AI Prediction"])
 
-@router.post("/", response_model=PredictionResponse)
+
+@router.post("/", response_model=MultiModelPredictionResponse)
 async def predict_retinopathy(image: UploadFile = File(...)):
-    """
-    Endpoint para predicción de retinopatía diabética
+    """Endpoint para prediccion de retinopatia diabetica con 5 modelos de IA"""
 
-    TODO: Reemplazar con tu modelo de IA real
+    if not image.content_type or not image.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="El archivo debe ser una imagen")
 
-    Pasos para integrar tu modelo:
-    1. Cargar el modelo entrenado al inicio de la app
-    2. Leer y preprocesar la imagen (image.file.read())
-    3. Hacer la predicción con tu modelo
-    4. Retornar el resultado en el formato esperado
-    """
-
-    # Validar tipo de archivo
-    if not image.content_type.startswith('image/'):
+    if not model_service.loaded:
         raise HTTPException(
-            status_code=400,
-            detail="El archivo debe ser una imagen"
+            status_code=503,
+            detail="Los modelos de IA aun no estan cargados. Intente de nuevo en unos segundos.",
         )
 
-    # ==========================================
-    # MOCK RESPONSE - REEMPLAZAR CON TU MODELO
-    # ==========================================
-
-    # Simular procesamiento
     contents = await image.read()
 
-    # Mock: Respuesta aleatoria para demostración
-    severities = ['none', 'mild', 'moderate', 'severe', 'proliferative']
-    predictions = [
-        'Sin Retinopatía',
-        'Retinopatía Diabética Leve',
-        'Retinopatía Diabética Moderada',
-        'Retinopatía Diabética Severa',
-        'Retinopatía Diabética Proliferativa'
-    ]
+    raw_results = model_service.predict_all(contents)
 
-    severity_idx = random.randint(0, 4)
-    severity = severities[severity_idx]
-    prediction = predictions[severity_idx]
+    results = [SingleModelResult(**r) for r in raw_results]
 
-    mock_response = PredictionResponse(
+    consensus = _compute_consensus(results)
+
+    return MultiModelPredictionResponse(
+        results=results,
+        consensus=consensus,
+        image_filename=image.filename or "imagen.jpg",
+    )
+
+
+def _compute_consensus(results: list[SingleModelResult]) -> ConsensusResult:
+    valid = [r for r in results if r.prediction != 'Error']
+    total = len(results)
+
+    if not valid:
+        return ConsensusResult(
+            prediction='Error',
+            severity='none',
+            confidence=0.0,
+            agreement_count=0,
+            total_models=total,
+            recommendation='No se pudo realizar el analisis. Intente de nuevo.',
+        )
+
+    votes = Counter(r.severity for r in valid)
+    winner_severity, agreement_count = votes.most_common(1)[0]
+
+    winners = [r for r in valid if r.severity == winner_severity]
+    avg_confidence = sum(r.confidence for r in winners) / len(winners)
+
+    winner_idx = ['none', 'mild', 'moderate', 'severe', 'proliferative'].index(winner_severity)
+    from app.services.model_service import CLASS_LABELS
+    prediction = CLASS_LABELS[winner_idx]
+
+    return ConsensusResult(
         prediction=prediction,
-        confidence=round(random.uniform(0.75, 0.98), 2),
-        severity=severity,
-        details={
-            "microaneurysms": severity_idx >= 1,
-            "hemorrhages": severity_idx >= 2,
-            "exudates": severity_idx >= 3,
-            "neovascularization": severity_idx >= 4
-        },
-        recommendation=get_recommendation(severity)
+        severity=winner_severity,
+        confidence=round(avg_confidence, 4),
+        agreement_count=agreement_count,
+        total_models=total,
+        recommendation=_get_recommendation(winner_severity),
     )
 
-    return mock_response
 
-    # ==========================================
-    # CÓDIGO REAL PARA TU MODELO (descomentar cuando esté listo):
-    # ==========================================
-    """
-    from PIL import Image
-    import io
-    import numpy as np
-
-    # Leer y preprocesar imagen
-    image_data = await image.read()
-    img = Image.open(io.BytesIO(image_data))
-
-    # Preprocesar según tu modelo (resize, normalize, etc.)
-    img_array = preprocess_image(img)  # Tu función de preprocesamiento
-
-    # Hacer predicción
-    prediction = your_model.predict(img_array)  # Tu modelo
-
-    # Interpretar resultados
-    severity = interpret_prediction(prediction)  # Tu función
-    confidence = float(prediction.max())
-
-    return PredictionResponse(
-        prediction=get_prediction_label(severity),
-        confidence=confidence,
-        severity=severity,
-        details=extract_details(prediction),  # Extraer detalles de la predicción
-        recommendation=get_recommendation(severity)
-    )
-    """
-
-def get_recommendation(severity: str) -> str:
-    """Obtener recomendación basada en severidad"""
+def _get_recommendation(severity: str) -> str:
     recommendations = {
-        'none': 'No se detectaron signos de retinopatía diabética. Se recomienda control anual de rutina.',
-        'mild': 'Se detectaron signos leves de retinopatía diabética. Consulte con su oftalmólogo para evaluación y seguimiento.',
-        'moderate': 'Se detectaron signos moderados de retinopatía diabética. Se recomienda consulta con oftalmólogo a la brevedad.',
-        'severe': 'Se detectaron signos severos de retinopatía diabética. Se requiere atención oftalmológica urgente.',
-        'proliferative': 'Se detectó retinopatía diabética proliferativa. Se requiere atención oftalmológica inmediata.'
+        'none': 'No se detectaron signos de retinopatia diabetica. Se recomienda control anual de rutina.',
+        'mild': 'Se detectaron signos leves de retinopatia diabetica. Consulte con su oftalmologo para evaluacion y seguimiento.',
+        'moderate': 'Se detectaron signos moderados de retinopatia diabetica. Se recomienda consulta con oftalmologo a la brevedad.',
+        'severe': 'Se detectaron signos severos de retinopatia diabetica. Se requiere atencion oftalmologica urgente.',
+        'proliferative': 'Se detecto retinopatia diabetica proliferativa. Se requiere atencion oftalmologica inmediata.',
     }
-    return recommendations.get(severity, 'Consulte con un especialista para evaluación.')
+    return recommendations.get(severity, 'Consulte con un especialista para evaluacion.')

@@ -1,13 +1,25 @@
 from pydantic import BaseModel
-from typing import Dict
+from typing import List
 
-class PredictionResponse(BaseModel):
+
+class SingleModelResult(BaseModel):
+    model_name: str
     prediction: str
     confidence: float
-    severity: str  # 'none', 'mild', 'moderate', 'severe', 'proliferative'
-    details: Dict[str, bool]
+    severity: str
+    probabilities: List[float]
+
+
+class ConsensusResult(BaseModel):
+    prediction: str
+    severity: str
+    confidence: float
+    agreement_count: int
+    total_models: int
     recommendation: str
 
-class PredictionRequest(BaseModel):
-    # Placeholder - la imagen vendrá como File en el endpoint
-    pass
+
+class MultiModelPredictionResponse(BaseModel):
+    results: List[SingleModelResult]
+    consensus: ConsensusResult
+    image_filename: str

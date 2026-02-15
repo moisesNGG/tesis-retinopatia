@@ -5,10 +5,19 @@ import { Button } from '../components/ui/button';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Progress } from '../components/ui/progress';
 import { Badge } from '../components/ui/badge';
-import { Upload, Image as ImageIcon, AlertCircle, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
-import { pagesAPI } from '../services/api';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import { Upload, Image as ImageIcon, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { pagesAPI, predictionAPI } from '../services/api';
 import Hero from '../components/sections/Hero';
 import ContentSection from '../components/sections/ContentSection';
+
+const MODEL_NAMES = [
+  'DenseNet121 + EA',
+  'EfficientNet-B0 + EA',
+  'ResNet50 + EA',
+  'ViT-B/16',
+  'YOLOv8x-cls',
+];
 
 const Proceso = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -17,6 +26,7 @@ const Proceso = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [pageData, setPageData] = useState(null);
+  const [progressValue, setProgressValue] = useState(0);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -29,10 +39,9 @@ const Proceso = () => {
       setPageData(data);
     } catch (err) {
       console.error('Error cargando datos del CMS:', err);
-      // Si falla, usar valores por defecto
       setPageData({
-        title: 'Proceso de Análisis',
-        subtitle: 'Sube una imagen de fondo de ojo para detectar signos de retinopatía diabética'
+        title: 'Proceso de Analisis',
+        subtitle: 'Sube una imagen de fondo de ojo para detectar signos de retinopatia diabetica'
       });
     }
   };
@@ -40,15 +49,13 @@ const Proceso = () => {
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Validar tipo de archivo
       if (!file.type.startsWith('image/')) {
-        setError('Por favor selecciona un archivo de imagen válido');
+        setError('Por favor selecciona un archivo de imagen valido');
         return;
       }
 
-      // Validar tamaño (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        setError('El archivo es demasiado grande. Tamaño máximo: 10MB');
+        setError('El archivo es demasiado grande. Tamano maximo: 10MB');
         return;
       }
 
@@ -56,7 +63,6 @@ const Proceso = () => {
       setError(null);
       setResult(null);
 
-      // Crear preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
@@ -74,49 +80,21 @@ const Proceso = () => {
     setAnalyzing(true);
     setError(null);
     setResult(null);
+    setProgressValue(10);
+
+    const progressInterval = setInterval(() => {
+      setProgressValue((prev) => (prev < 85 ? prev + 5 : prev));
+    }, 800);
 
     try {
-      // TODO: Reemplazar con llamada real al endpoint de IA
-      const formData = new FormData();
-      formData.append('image', selectedFile);
-
-      // Simulación de análisis (reemplazar con fetch real)
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      // Mock result - REEMPLAZAR cuando tengas el backend
-      const mockResult = {
-        prediction: 'Retinopatía Diabética Moderada',
-        confidence: 0.87,
-        severity: 'moderate',
-        details: {
-          microaneurysms: true,
-          hemorrhages: true,
-          exudates: false,
-          neovascularization: false
-        },
-        recommendation: 'Se recomienda consulta con oftalmólogo. Se detectaron signos de retinopatía diabética moderada.'
-      };
-
-      /*
-      // CÓDIGO REAL PARA CUANDO TENGAS EL BACKEND:
-      const response = await fetch(process.env.REACT_APP_AI_MODEL_URL, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Error en el análisis');
-      }
-
-      const data = await response.json();
+      const data = await predictionAPI.analyze(selectedFile);
+      setProgressValue(100);
       setResult(data);
-      */
-
-      setResult(mockResult);
     } catch (err) {
       setError('Error al analizar la imagen. Por favor intenta de nuevo.');
       console.error(err);
     } finally {
+      clearInterval(progressInterval);
       setAnalyzing(false);
     }
   };
@@ -126,6 +104,7 @@ const Proceso = () => {
     setPreview(null);
     setResult(null);
     setError(null);
+    setProgressValue(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -142,25 +121,34 @@ const Proceso = () => {
     return colors[severity] || 'bg-gray-100 text-gray-800';
   };
 
+  const getSeverityLabel = (severity) => {
+    const labels = {
+      none: 'Sin RD',
+      mild: 'Leve',
+      moderate: 'Moderada',
+      severe: 'Severa',
+      proliferative: 'Proliferativa'
+    };
+    return labels[severity] || severity;
+  };
+
   if (!pageData) {
     return <Layout><div className="container py-12">Cargando...</div></Layout>;
   }
 
   return (
     <Layout>
-      {/* Hero section si hay imagen */}
       {pageData.heroImage && (
         <Hero
           title={pageData.title}
           subtitle={pageData.subtitle}
           image={pageData.heroImage}
           imageStyle={pageData.heroImageStyle || 'cover'}
-          ctaText="Comenzar Análisis"
+          ctaText="Comenzar Analisis"
           ctaLink="#analizar"
         />
       )}
 
-      {/* Secciones del CMS si existen */}
       {pageData.sections && pageData.sections.length > 0 && (
         <div className="bg-gradient-to-b from-white to-gray-50">
           {pageData.sections
@@ -181,7 +169,6 @@ const Proceso = () => {
 
       <div id="analizar" className="bg-gradient-to-b from-blue-50 to-white py-12">
         <div className="container max-w-5xl">
-          {/* Mostrar título solo si no hay Hero */}
           {!pageData.heroImage && (
             <div className="text-center mb-12">
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -198,15 +185,15 @@ const Proceso = () => {
             <CardHeader>
               <CardTitle>Instrucciones</CardTitle>
               <CardDescription>
-                Sigue estos pasos para obtener un análisis preciso
+                Sigue estos pasos para obtener un analisis preciso
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ol className="list-decimal list-inside space-y-2 text-gray-700">
-                <li>Asegúrate de que la imagen sea de buena calidad y esté bien enfocada</li>
+                <li>Asegurate de que la imagen sea de buena calidad y este bien enfocada</li>
                 <li>La imagen debe mostrar claramente el fondo de ojo</li>
-                <li>Formatos aceptados: JPG, PNG (máximo 10MB)</li>
-                <li>El análisis puede tardar unos segundos</li>
+                <li>Formatos aceptados: JPG, PNG (maximo 10MB)</li>
+                <li>La imagen sera analizada por 5 modelos de IA simultaneamente</li>
               </ol>
             </CardContent>
           </Card>
@@ -228,7 +215,7 @@ const Proceso = () => {
                       Haz clic para seleccionar una imagen
                     </p>
                     <p className="text-sm text-gray-500">
-                      o arrastra y suelta aquí
+                      o arrastra y suelta aqui
                     </p>
                     <input
                       ref={fileInputRef}
@@ -285,11 +272,21 @@ const Proceso = () => {
           {analyzing && (
             <Card className="mb-8">
               <CardContent className="pt-6">
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600 text-center">
-                    Analizando imagen con IA...
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600 text-center font-medium">
+                    Analizando imagen con 5 modelos de IA...
                   </p>
-                  <Progress value={66} className="w-full" />
+                  <div className="flex flex-wrap justify-center gap-2 mb-2">
+                    {MODEL_NAMES.map((name) => (
+                      <Badge key={name} variant="outline" className="text-xs">
+                        {name}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Progress value={progressValue} className="w-full" />
+                  <p className="text-xs text-gray-400 text-center">
+                    Este proceso puede tardar 10-15 segundos
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -305,74 +302,99 @@ const Proceso = () => {
 
           {/* Results */}
           {result && (
-            <Card className="mb-8 border-2 border-blue-200">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-2xl">Resultados del Análisis</CardTitle>
-                  <CheckCircle2 className="h-8 w-8 text-green-600" />
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Predicción principal */}
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Diagnóstico</p>
-                  <div className="flex items-center gap-3">
-                    <Badge className={`text-base py-2 px-4 ${getSeverityColor(result.severity)}`}>
-                      {result.prediction}
+            <div className="space-y-6">
+              {/* Consenso */}
+              <Card className="border-2 border-blue-200">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-2xl">Diagnostico por Consenso</CardTitle>
+                    <CheckCircle2 className="h-8 w-8 text-green-600" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <Badge className={`text-base py-2 px-4 ${getSeverityColor(result.consensus.severity)}`}>
+                      {result.consensus.prediction}
                     </Badge>
-                    <span className="text-sm text-gray-600">
-                      Confianza: {(result.confidence * 100).toFixed(1)}%
-                    </span>
+                    <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                      <span>
+                        Confianza: <strong>{(result.consensus.confidence * 100).toFixed(1)}%</strong>
+                      </span>
+                      <span>
+                        Acuerdo: <strong>{result.consensus.agreement_count}/{result.consensus.total_models} modelos</strong>
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Hallazgos */}
-                <div>
-                  <p className="text-sm font-semibold text-gray-900 mb-3">
-                    Hallazgos Detectados
-                  </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {Object.entries(result.details).map(([key, value]) => (
-                      <div
-                        key={key}
-                        className="flex items-center gap-2 text-sm"
-                      >
-                        {value ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-gray-400" />
-                        )}
-                        <span className="capitalize">
-                          {key.replace(/([A-Z])/g, ' $1').trim()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Recomendacion:</strong> {result.consensus.recommendation}
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+              </Card>
 
-                {/* Recomendación */}
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Recomendación:</strong> {result.recommendation}
-                  </AlertDescription>
-                </Alert>
+              {/* Tabla comparativa de modelos */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Resultados por Modelo</CardTitle>
+                  <CardDescription>
+                    Comparativa de los 5 modelos de inteligencia artificial
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Modelo</TableHead>
+                        <TableHead>Prediccion</TableHead>
+                        <TableHead>Confianza</TableHead>
+                        <TableHead>Severidad</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {result.results.map((r) => (
+                        <TableRow key={r.model_name}>
+                          <TableCell className="font-medium">{r.model_name}</TableCell>
+                          <TableCell>{r.prediction}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Progress
+                                value={r.confidence * 100}
+                                className="w-20 h-2"
+                              />
+                              <span className="text-sm text-gray-600 min-w-[3rem]">
+                                {(r.confidence * 100).toFixed(1)}%
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getSeverityColor(r.severity)}>
+                              {getSeverityLabel(r.severity)}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
 
-                {/* Disclaimer */}
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-sm text-yellow-900">
-                    <strong>Importante:</strong> Este resultado es generado por un
-                    sistema de IA y tiene fines académicos. No sustituye el diagnóstico
-                    de un profesional médico. Consulta con un oftalmólogo para una
-                    evaluación completa.
-                  </p>
-                </div>
+              {/* Disclaimer */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-900">
+                  <strong>Importante:</strong> Estos resultados son generados por
+                  sistemas de IA y tienen fines academicos. No sustituyen el diagnostico
+                  de un profesional medico. Consulta con un oftalmologo para una
+                  evaluacion completa.
+                </p>
+              </div>
 
-                <Button onClick={resetAnalysis} variant="outline" className="w-full">
-                  Analizar Nueva Imagen
-                </Button>
-              </CardContent>
-            </Card>
+              <Button onClick={resetAnalysis} variant="outline" className="w-full">
+                Analizar Nueva Imagen
+              </Button>
+            </div>
           )}
         </div>
       </div>
