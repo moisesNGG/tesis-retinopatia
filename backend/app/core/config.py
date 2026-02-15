@@ -25,6 +25,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
         "https://tesis-rinopatia-production.up.railway.app",  # Railway production
+        "https://tesis-retinopatia.up.railway.app",  # Railway production (dominio actual)
     ]
 
     # AI Model (placeholder - actualizar cuando tengas el modelo)

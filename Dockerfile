@@ -5,7 +5,7 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instalar dependencias del sistema (incluyendo OpenCV deps para ultralytics)
+# Instalar dependencias del sistema (incluyendo OpenCV deps para ultralytics + git-lfs)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
@@ -13,6 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     libgl1 \
     libglib2.0-0 \
+    git \
+    git-lfs \
+    && git lfs install \
     && ln -s /usr/bin/python3 /usr/bin/python \
     && rm -rf /var/lib/apt/lists/*
 
@@ -25,6 +28,27 @@ COPY backend/ .
 
 # Copiar pesos de modelos de IA
 COPY backend/models_weights/ /app/models_weights/
+
+# Verificar que los archivos de modelos son binarios reales (no LFS pointers)
+RUN echo "[MODEL CHECK] Verificando archivos de modelos..." && \
+    for f in /app/models_weights/densenet121_ea/best_model.pth \
+             /app/models_weights/efficientnet_b0_ea/best_model.pth \
+             /app/models_weights/resnet50_ea/best_model.pth \
+             /app/models_weights/vit_b16/vit_b16_best.pt \
+             /app/models_weights/yolov8x_cls/best.pt; do \
+        if [ -f "$f" ]; then \
+            SIZE=$(stat -c%s "$f"); \
+            echo "  [INFO] $f -> ${SIZE} bytes"; \
+            if [ "$SIZE" -lt 1000 ]; then \
+                echo "  [ERROR] $f parece ser un LFS pointer (muy pequeno: ${SIZE} bytes)"; \
+                echo "  [ERROR] Contenido:"; cat "$f"; echo ""; \
+            else \
+                echo "  [OK] $f es un archivo binario real"; \
+            fi; \
+        else \
+            echo "  [WARN] $f NO encontrado"; \
+        fi; \
+    done
 
 # Copiar frontend pre-compilado desde la carpeta public (ya compilado localmente)
 COPY public/ /app/public/
