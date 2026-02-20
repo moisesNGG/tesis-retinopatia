@@ -17,10 +17,16 @@ async def predict_retinopathy(image: UploadFile = File(...)):
     if not image.content_type or not image.content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail="El archivo debe ser una imagen")
 
+    if model_service.loading:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Los modelos de IA se estan cargando ({model_service.models_loaded_count}/5). Intente de nuevo en unos segundos.",
+        )
+
     if not model_service.loaded:
         raise HTTPException(
             status_code=503,
-            detail="Los modelos de IA aun no estan cargados. Intente de nuevo en unos segundos.",
+            detail="Los modelos de IA no pudieron cargarse. Revise los logs del servidor.",
         )
 
     contents = await image.read()

@@ -5,6 +5,8 @@ from torchvision import models, transforms
 from PIL import Image
 import io
 import os
+import gc
+import threading
 import traceback
 
 # ---------------------------------------------------------------------------
@@ -183,10 +185,18 @@ class ModelService:
     def __init__(self):
         self.models: dict = {}
         self.loaded = False
+        self.loading = False
+        self.models_loaded_count = 0
         self.device = torch.device('cpu')
 
     def load_all_models(self, models_dir: str):
-        print(f"[ModelService] Cargando modelos desde {models_dir} ...")
+        """Carga modelos en un thread de fondo para no bloquear el startup del servidor."""
+        self.loading = True
+        thread = threading.Thread(target=self._load_models_sync, args=(models_dir,), daemon=True)
+        thread.start()
+
+    def _load_models_sync(self, models_dir: str):
+        print(f"[ModelService] Cargando modelos en background desde {models_dir} ...")
 
         model_configs = [
             {
@@ -232,12 +242,17 @@ class ModelService:
                 else:
                     self._load_pytorch(cfg)
 
-                print(f"  [OK] {cfg['name']} cargado")
+                self.models_loaded_count = len(self.models)
+                print(f"  [OK] {cfg['name']} cargado ({self.models_loaded_count}/5)")
+                # Liberar memoria entre cargas
+                gc.collect()
             except Exception:
                 print(f"  [ERROR] Fallo al cargar {cfg['name']}:")
                 traceback.print_exc()
+                gc.collect()
 
         self.loaded = len(self.models) > 0
+        self.loading = False
         print(f"[ModelService] {len(self.models)} modelos cargados correctamente")
 
     def _load_pytorch(self, cfg: dict):
@@ -245,6 +260,8 @@ class ModelService:
         checkpoint = torch.load(cfg['path'], map_location=self.device, weights_only=False)
         state_dict = checkpoint[cfg['checkpoint_key']]
         model.load_state_dict(state_dict)
+        del checkpoint, state_dict
+        gc.collect()
         model.to(self.device)
         model.eval()
         self.models[cfg['name']] = {'model': model, 'type': 'pytorch'}
@@ -255,6 +272,8 @@ class ModelService:
         model.heads.head = nn.Linear(model.heads.head.in_features, NUM_CLASSES)
         state_dict = torch.load(cfg['path'], map_location=self.device, weights_only=False)
         model.load_state_dict(state_dict)
+        del state_dict
+        gc.collect()
         model.to(self.device)
         model.eval()
         self.models[cfg['name']] = {'model': model, 'type': 'pytorch'}
