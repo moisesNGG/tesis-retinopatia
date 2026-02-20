@@ -259,7 +259,42 @@ class ModelService:
         model = cfg['class'](num_classes=NUM_CLASSES, pretrained=False)
         checkpoint = torch.load(cfg['path'], map_location=self.device, weights_only=False)
         state_dict = checkpoint[cfg['checkpoint_key']]
-        model.load_state_dict(state_dict)
+
+        try:
+            model.load_state_dict(state_dict)
+        except RuntimeError as e:
+            print(f"  [WARN] load_state_dict fallo para {cfg['name']}, intentando remap de keys...")
+            model_keys = set(model.state_dict().keys())
+            ckpt_keys = set(state_dict.keys())
+            missing = model_keys - ckpt_keys
+            unexpected = ckpt_keys - model_keys
+
+            if missing or unexpected:
+                print(f"    Keys faltantes ({len(missing)}): {list(missing)[:5]}...")
+                print(f"    Keys inesperadas ({len(unexpected)}): {list(unexpected)[:5]}...")
+
+            # Intentar remap: resnet. <-> features.
+            remapped = {}
+            for k, v in state_dict.items():
+                new_key = k
+                if k.startswith('resnet.'):
+                    new_key = 'features.' + k[len('resnet.'):]
+                elif k.startswith('features.'):
+                    new_key = 'resnet.' + k[len('features.'):]
+                remapped[new_key] = v
+
+            try:
+                model.load_state_dict(remapped)
+                print(f"  [OK] Remap exitoso para {cfg['name']}")
+            except RuntimeError:
+                # Ultimo intento: strict=False
+                print(f"  [WARN] Remap fallo, cargando con strict=False para {cfg['name']}")
+                result = model.load_state_dict(state_dict, strict=False)
+                if result.missing_keys:
+                    print(f"    Missing keys: {result.missing_keys[:5]}...")
+                if result.unexpected_keys:
+                    print(f"    Unexpected keys: {result.unexpected_keys[:5]}...")
+
         del checkpoint, state_dict
         gc.collect()
         model.to(self.device)

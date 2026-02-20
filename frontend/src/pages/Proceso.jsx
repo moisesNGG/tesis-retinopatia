@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Layout from '../components/layout/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Progress } from '../components/ui/progress';
 import { Badge } from '../components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 
-import { Upload, Image as ImageIcon, AlertCircle, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
+import { Upload, Image as ImageIcon, AlertCircle, CheckCircle2, Loader2, ShieldCheck, Info } from 'lucide-react';
 import { pagesAPI, predictionAPI } from '../services/api';
 import Hero from '../components/sections/Hero';
 import ContentSection from '../components/sections/ContentSection';
@@ -21,6 +20,22 @@ const MODEL_NAMES = [
   'YOLOv8x-cls',
 ];
 
+const CLASS_LABELS = [
+  'Sin RD',
+  'RD Leve',
+  'RD Moderada',
+  'RD Severa',
+  'RD Proliferativa',
+];
+
+const CLASS_COLORS = [
+  { bg: 'bg-green-500', text: 'text-green-700', light: 'bg-green-50' },
+  { bg: 'bg-yellow-500', text: 'text-yellow-700', light: 'bg-yellow-50' },
+  { bg: 'bg-orange-500', text: 'text-orange-700', light: 'bg-orange-50' },
+  { bg: 'bg-red-500', text: 'text-red-700', light: 'bg-red-50' },
+  { bg: 'bg-red-700', text: 'text-red-900', light: 'bg-red-100' },
+];
+
 const Proceso = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -31,7 +46,7 @@ const Proceso = () => {
   const [progressValue, setProgressValue] = useState(0);
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [showConsentDialog, setShowConsentDialog] = useState(false);
-  const [consentChoice, setConsentChoice] = useState(null); // 'accept' | 'reject' | null
+  const [consentChoice, setConsentChoice] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -64,14 +79,12 @@ const Proceso = () => {
     setConsentAccepted(true);
     setShowConsentDialog(false);
     setConsentChoice(null);
-    // Abrir selector de archivo tras aceptar
     setTimeout(() => fileInputRef.current?.click(), 100);
   };
 
   const handleConsentReject = () => {
     setShowConsentDialog(false);
     setConsentChoice(null);
-    // Redirigir al inicio
     window.location.href = '/';
   };
 
@@ -196,11 +209,11 @@ const Proceso = () => {
         </div>
       )}
 
-      <div id="analizar" className="bg-gradient-to-b from-blue-50 to-white py-12">
+      <div id="analizar" className="bg-gradient-to-b from-blue-50 to-white py-8">
         <div className="container max-w-5xl">
           {!pageData.heroImage && (
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-3">
                 {pageData.title}
               </h1>
               <p className="text-lg text-gray-600">
@@ -209,38 +222,28 @@ const Proceso = () => {
             </div>
           )}
 
-          {/* Instrucciones */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Instrucciones</CardTitle>
-              <CardDescription>
-                Sigue estos pasos para obtener un analisis preciso
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ol className="list-decimal list-inside space-y-2 text-gray-700">
-                <li>Asegurate de que la imagen sea de buena calidad y este bien enfocada</li>
-                <li>La imagen debe mostrar claramente el fondo de ojo</li>
-                <li>Formatos aceptados: JPG, PNG (maximo 10MB)</li>
-                <li>La imagen sera analizada por 5 modelos de IA simultaneamente</li>
-              </ol>
-            </CardContent>
-          </Card>
-
-          {/* Upload Area */}
-          <Card className="mb-8">
-            <CardHeader>
+          {/* Upload Area con instrucciones integradas */}
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
               <CardTitle>Subir Imagen</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
+              <div className="space-y-4">
+                {/* Instrucciones compactas */}
+                <div className="flex items-start gap-2 text-sm text-gray-500 bg-gray-50 rounded-lg p-3">
+                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <p>
+                    Imagen de fondo de ojo en JPG o PNG (max 10MB). Sera analizada por 5 modelos de IA simultaneamente.
+                  </p>
+                </div>
+
                 {!preview ? (
                   <div
                     onClick={handleUploadClick}
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-500 transition-colors cursor-pointer"
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center hover:border-blue-500 transition-colors cursor-pointer"
                   >
-                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-gray-600 mb-2">
+                    <Upload className="mx-auto h-10 w-10 text-gray-400 mb-3" />
+                    <p className="text-gray-600 mb-1">
                       Haz clic para seleccionar una imagen
                     </p>
                     <p className="text-sm text-gray-500">
@@ -249,7 +252,7 @@ const Proceso = () => {
                     {consentAccepted && (
                       <p className="text-xs text-green-600 mt-2 flex items-center justify-center gap-1">
                         <ShieldCheck className="h-3 w-3" />
-                        Términos y condiciones aceptados
+                        Terminos y condiciones aceptados
                       </p>
                     )}
                     <input
@@ -305,7 +308,7 @@ const Proceso = () => {
 
           {/* Progress */}
           {analyzing && (
-            <Card className="mb-8">
+            <Card className="mb-6">
               <CardContent className="pt-6">
                 <div className="space-y-3">
                   <p className="text-sm text-gray-600 text-center font-medium">
@@ -329,7 +332,7 @@ const Proceso = () => {
 
           {/* Error */}
           {error && (
-            <Alert variant="destructive" className="mb-8">
+            <Alert variant="destructive" className="mb-6">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
@@ -337,18 +340,18 @@ const Proceso = () => {
 
           {/* Results */}
           {result && (
-            <div className="space-y-6">
+            <div className="space-y-5">
               {/* Consenso */}
               <Card className="border-2 border-blue-200">
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl">Diagnostico por Consenso</CardTitle>
-                    <CheckCircle2 className="h-8 w-8 text-green-600" />
+                    <CardTitle className="text-xl">Diagnostico por Consenso</CardTitle>
+                    <CheckCircle2 className="h-7 w-7 text-green-600" />
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <Badge className={`text-base py-2 px-4 ${getSeverityColor(result.consensus.severity)}`}>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <Badge className={`text-base py-1.5 px-4 ${getSeverityColor(result.consensus.severity)}`}>
                       {result.consensus.prediction}
                     </Badge>
                     <div className="flex flex-wrap gap-3 text-sm text-gray-600">
@@ -370,60 +373,58 @@ const Proceso = () => {
                 </CardContent>
               </Card>
 
-              {/* Tabla comparativa de modelos */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Resultados por Modelo</CardTitle>
-                  <CardDescription>
-                    Comparativa de los 5 modelos de inteligencia artificial
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Modelo</TableHead>
-                        <TableHead>Prediccion</TableHead>
-                        <TableHead>Confianza</TableHead>
-                        <TableHead>Severidad</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {result.results.map((r) => (
-                        <TableRow key={r.model_name}>
-                          <TableCell className="font-medium">{r.model_name}</TableCell>
-                          <TableCell>{r.prediction}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress
-                                value={r.confidence * 100}
-                                className="w-20 h-2"
-                              />
-                              <span className="text-sm text-gray-600 min-w-[3rem]">
-                                {(r.confidence * 100).toFixed(1)}%
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getSeverityColor(r.severity)}>
-                              {getSeverityLabel(r.severity)}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+              {/* Per-model cards con probabilidades */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Resultados por Modelo</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {result.results.map((r) => (
+                    <Card key={r.model_name} className="overflow-hidden">
+                      <CardHeader className="pb-2 pt-4 px-4">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-sm text-gray-900">{r.model_name}</span>
+                          <Badge className={`text-xs ${getSeverityColor(r.severity)}`}>
+                            {getSeverityLabel(r.severity)}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Confianza: {(r.confidence * 100).toFixed(1)}%
+                        </p>
+                      </CardHeader>
+                      <CardContent className="px-4 pb-4 pt-1">
+                        {/* Barras de probabilidad */}
+                        <div className="space-y-1.5">
+                          {r.probabilities && r.probabilities.map((prob, i) => {
+                            const pct = (prob * 100).toFixed(1);
+                            return (
+                              <div key={i} className="flex items-center gap-2">
+                                <span className="text-[11px] text-gray-500 w-20 text-right flex-shrink-0 truncate">
+                                  {CLASS_LABELS[i]}
+                                </span>
+                                <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full transition-all ${CLASS_COLORS[i].bg}`}
+                                    style={{ width: `${Math.max(prob * 100, 0.5)}%` }}
+                                  />
+                                </div>
+                                <span className="text-[11px] text-gray-600 w-11 text-right flex-shrink-0 font-mono">
+                                  {pct}%
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
 
               {/* Disclaimer */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p className="text-sm text-yellow-900">
-                  <strong>Importante:</strong> Estos resultados son generados por
-                  sistemas de IA y tienen fines academicos. No sustituyen el diagnostico
-                  de un profesional medico. Consulta con un oftalmologo para una
-                  evaluacion completa.
-                </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-900">
+                <strong>Importante:</strong> Estos resultados son generados por
+                sistemas de IA y tienen fines academicos. No sustituyen el diagnostico
+                de un profesional medico. Consulta con un oftalmologo para una
+                evaluacion completa.
               </div>
 
               <Button onClick={resetAnalysis} variant="outline" className="w-full">
@@ -433,6 +434,7 @@ const Proceso = () => {
           )}
         </div>
       </div>
+
       {/* Dialog de Consentimiento */}
       <Dialog open={showConsentDialog} onOpenChange={(open) => {
         if (!open) setShowConsentDialog(false);
@@ -441,44 +443,40 @@ const Proceso = () => {
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2 text-xl">
               <ShieldCheck className="h-6 w-6 text-blue-600" />
-              Términos y Condiciones de Uso
+              Terminos y Condiciones de Uso
             </DialogTitle>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto min-h-0 pr-2">
             <div className="space-y-6 text-sm text-gray-700 leading-relaxed">
-              {/* Seccion 1 */}
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2 text-base">
                   1. Finalidad y alcance del sistema
                 </h3>
                 <p>
-                  RETINAIA es una plataforma de investigación en inteligencia artificial aplicada al análisis de imágenes médicas. Su propósito es evaluar el desempeño de modelos de aprendizaje profundo en la clasificación multietapa de retinopatía diabética dentro de un entorno experimental. Se trata de una herramienta metodológica para validación técnica y análisis comparativo de algoritmos. No es un producto sanitario certificado ni está habilitada para uso clínico. Su utilización se limita a contextos académicos y de investigación.
+                  RETINAIA es una plataforma de investigacion en inteligencia artificial aplicada al analisis de imagenes medicas. Su proposito es evaluar el desempeno de modelos de aprendizaje profundo en la clasificacion multietapa de retinopatia diabetica dentro de un entorno experimental. Se trata de una herramienta metodologica para validacion tecnica y analisis comparativo de algoritmos. No es un producto sanitario certificado ni esta habilitada para uso clinico. Su utilizacion se limita a contextos academicos y de investigacion.
                 </p>
               </div>
 
-              {/* Seccion 2 */}
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2 text-base">
-                  2. Privacidad, tratamiento y uso de imágenes
+                  2. Privacidad, tratamiento y uso de imagenes
                 </h3>
                 <p>
-                  Las imágenes cargadas se procesan únicamente durante la sesión activa para generar un resultado inmediato. No se almacenan de forma permanente ni se integran en bases de datos. El tratamiento se realiza bajo principios de confidencialidad, minimización de datos y uso restringido al propósito declarado. El usuario declara contar con autorización para utilizar las imágenes proporcionadas. La plataforma respeta estándares éticos aplicables a la investigación con datos médicos.
+                  Las imagenes cargadas se procesan unicamente durante la sesion activa para generar un resultado inmediato. No se almacenan de forma permanente ni se integran en bases de datos. El tratamiento se realiza bajo principios de confidencialidad, minimizacion de datos y uso restringido al proposito declarado. El usuario declara contar con autorizacion para utilizar las imagenes proporcionadas. La plataforma respeta estandares eticos aplicables a la investigacion con datos medicos.
                 </p>
               </div>
 
-              {/* Seccion 3 */}
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2 text-base">
                   3. Advertencias y limitaciones de responsabilidad
                 </h3>
                 <p>
-                  Los resultados corresponden a estimaciones algorítmicas sujetas a posibles márgenes de error. No constituyen diagnóstico médico ni reemplazan la evaluación de un profesional de la salud. La plataforma no emite recomendaciones clínicas ni debe utilizarse para la toma de decisiones médicas. El usuario reconoce el carácter experimental del sistema y sus limitaciones técnicas. El uso de la herramienta implica la aceptación de estas condiciones.
+                  Los resultados corresponden a estimaciones algoritmicas sujetas a posibles margenes de error. No constituyen diagnostico medico ni reemplazan la evaluacion de un profesional de la salud. La plataforma no emite recomendaciones clinicas ni debe utilizarse para la toma de decisiones medicas. El usuario reconoce el caracter experimental del sistema y sus limitaciones tecnicas. El uso de la herramienta implica la aceptacion de estas condiciones.
                 </p>
               </div>
             </div>
 
-            {/* Opciones de consentimiento dentro del scroll */}
             <div className="border-t mt-6 pt-4 space-y-3">
               <label
                 className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
@@ -498,7 +496,7 @@ const Proceso = () => {
                   )}
                 </div>
                 <span className="text-sm text-gray-700">
-                  Acepto todos los términos y condiciones descritos anteriormente
+                  Acepto todos los terminos y condiciones descritos anteriormente
                 </span>
               </label>
 
@@ -520,7 +518,7 @@ const Proceso = () => {
                   )}
                 </div>
                 <span className="text-sm text-gray-700">
-                  No acepto los términos y deseo abandonar la plataforma
+                  No acepto los terminos y deseo abandonar la plataforma
                 </span>
               </label>
             </div>
@@ -542,7 +540,7 @@ const Proceso = () => {
                 ? 'Continuar'
                 : consentChoice === 'reject'
                 ? 'Abandonar plataforma'
-                : 'Selecciona una opción'}
+                : 'Selecciona una opcion'}
             </Button>
           </DialogFooter>
         </DialogContent>
