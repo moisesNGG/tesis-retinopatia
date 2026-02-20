@@ -116,7 +116,8 @@ export const predictionAPI = {
     });
 
     if (!response.ok) {
-      throw new Error('Error en el análisis de la imagen');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Error en el análisis de la imagen');
     }
 
     return response.json();

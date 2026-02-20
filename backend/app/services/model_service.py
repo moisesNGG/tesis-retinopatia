@@ -133,8 +133,7 @@ class EfficientNetB0WithExternalAttention(nn.Module):
 class ResNet50WithExternalAttention(nn.Module):
     def __init__(self, num_classes=NUM_CLASSES, pretrained=False):
         super().__init__()
-        resnet = models.resnet50(weights=None)
-        self.features = nn.Sequential(*list(resnet.children())[:-2])  # output: 2048 channels
+        self.resnet = models.resnet50(weights=None)
 
         self.extra_conv1 = nn.Sequential(nn.Conv2d(2048, 1024, 3, padding=1), nn.BatchNorm2d(1024), nn.ReLU(inplace=True), nn.Dropout2d(0.3))
         self.extra_conv2 = nn.Sequential(nn.Conv2d(1024, 512, 3, padding=1), nn.BatchNorm2d(512), nn.ReLU(inplace=True), nn.Dropout2d(0.3))
@@ -146,8 +145,20 @@ class ResNet50WithExternalAttention(nn.Module):
         self.external_attention = ExternalAttention(dim=256, num_heads=8, dim_head=32, dropout=0.1)
         self.classifier = nn.Sequential(nn.Linear(256, 512), nn.ReLU(inplace=True), nn.Dropout(0.5), nn.Linear(512, num_classes))
 
+    def _forward_features(self, x):
+        """Extraer features del ResNet50 sin avgpool ni fc."""
+        x = self.resnet.conv1(x)
+        x = self.resnet.bn1(x)
+        x = self.resnet.relu(x)
+        x = self.resnet.maxpool(x)
+        x = self.resnet.layer1(x)
+        x = self.resnet.layer2(x)
+        x = self.resnet.layer3(x)
+        x = self.resnet.layer4(x)
+        return x
+
     def forward(self, x):
-        x = self.features(x)
+        x = self._forward_features(x)
         x = self.extra_conv1(x)
         x = self.extra_conv2(x)
         x = self.extra_conv3(x)

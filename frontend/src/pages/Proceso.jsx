@@ -120,7 +120,7 @@ const Proceso = () => {
       setProgressValue(100);
       setResult(data);
     } catch (err) {
-      setError('Error al analizar la imagen. Por favor intenta de nuevo.');
+      setError(err.message || 'Error al analizar la imagen. Por favor intenta de nuevo.');
       console.error(err);
     } finally {
       clearInterval(progressInterval);
