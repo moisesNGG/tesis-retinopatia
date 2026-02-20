@@ -105,7 +105,7 @@ export const predictionAPI = {
     formData.append('image', imageFile);
 
     // Usar window.location.origin para producción
-    const AI_MODEL_URL = process.env.REACT_APP_AI_MODEL_URL || `${window.location.origin}/api/predict`;
+    const AI_MODEL_URL = process.env.REACT_APP_AI_MODEL_URL || `${window.location.origin}/api/predict/`;
 
     const response = await fetch(AI_MODEL_URL, {
       method: 'POST',
