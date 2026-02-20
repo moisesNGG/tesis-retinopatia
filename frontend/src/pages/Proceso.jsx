@@ -7,7 +7,7 @@ import { Progress } from '../components/ui/progress';
 import { Badge } from '../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
-import { ScrollArea } from '../components/ui/scroll-area';
+
 import { Upload, Image as ImageIcon, AlertCircle, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 import { pagesAPI, predictionAPI } from '../services/api';
 import Hero from '../components/sections/Hero';
@@ -437,20 +437,20 @@ const Proceso = () => {
       <Dialog open={showConsentDialog} onOpenChange={(open) => {
         if (!open) setShowConsentDialog(false);
       }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2 text-xl">
               <ShieldCheck className="h-6 w-6 text-blue-600" />
               Términos y Condiciones de Uso
             </DialogTitle>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 pr-4" style={{ maxHeight: '55vh' }}>
+          <div className="flex-1 overflow-y-auto min-h-0 pr-2">
             <div className="space-y-6 text-sm text-gray-700 leading-relaxed">
               {/* Seccion 1 */}
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2 text-base">
-                  Finalidad y alcance del sistema
+                  1. Finalidad y alcance del sistema
                 </h3>
                 <p>
                   RETINAIA es una plataforma de investigación en inteligencia artificial aplicada al análisis de imágenes médicas. Su propósito es evaluar el desempeño de modelos de aprendizaje profundo en la clasificación multietapa de retinopatía diabética dentro de un entorno experimental. Se trata de una herramienta metodológica para validación técnica y análisis comparativo de algoritmos. No es un producto sanitario certificado ni está habilitada para uso clínico. Su utilización se limita a contextos académicos y de investigación.
@@ -460,7 +460,7 @@ const Proceso = () => {
               {/* Seccion 2 */}
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2 text-base">
-                  Privacidad, tratamiento y uso de imágenes
+                  2. Privacidad, tratamiento y uso de imágenes
                 </h3>
                 <p>
                   Las imágenes cargadas se procesan únicamente durante la sesión activa para generar un resultado inmediato. No se almacenan de forma permanente ni se integran en bases de datos. El tratamiento se realiza bajo principios de confidencialidad, minimización de datos y uso restringido al propósito declarado. El usuario declara contar con autorización para utilizar las imágenes proporcionadas. La plataforma respeta estándares éticos aplicables a la investigación con datos médicos.
@@ -470,73 +470,73 @@ const Proceso = () => {
               {/* Seccion 3 */}
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2 text-base">
-                  Advertencias y limitaciones de responsabilidad
+                  3. Advertencias y limitaciones de responsabilidad
                 </h3>
                 <p>
                   Los resultados corresponden a estimaciones algorítmicas sujetas a posibles márgenes de error. No constituyen diagnóstico médico ni reemplazan la evaluación de un profesional de la salud. La plataforma no emite recomendaciones clínicas ni debe utilizarse para la toma de decisiones médicas. El usuario reconoce el carácter experimental del sistema y sus limitaciones técnicas. El uso de la herramienta implica la aceptación de estas condiciones.
                 </p>
               </div>
             </div>
-          </ScrollArea>
 
-          {/* Opciones de consentimiento */}
-          <div className="border-t pt-4 space-y-3">
-            <label
-              className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                consentChoice === 'accept'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => setConsentChoice('accept')}
-            >
-              <div className={`mt-0.5 h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
-                consentChoice === 'accept'
-                  ? 'border-blue-500 bg-blue-500'
-                  : 'border-gray-300'
-              }`}>
-                {consentChoice === 'accept' && (
-                  <CheckCircle2 className="h-4 w-4 text-white" />
-                )}
-              </div>
-              <span className="text-sm text-gray-700">
-                Acepto todos los términos y condiciones descritos anteriormente
-              </span>
-            </label>
+            {/* Opciones de consentimiento dentro del scroll */}
+            <div className="border-t mt-6 pt-4 space-y-3">
+              <label
+                className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                  consentChoice === 'accept'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setConsentChoice('accept')}
+              >
+                <div className={`mt-0.5 h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                  consentChoice === 'accept'
+                    ? 'border-blue-500 bg-blue-500'
+                    : 'border-gray-300'
+                }`}>
+                  {consentChoice === 'accept' && (
+                    <CheckCircle2 className="h-4 w-4 text-white" />
+                  )}
+                </div>
+                <span className="text-sm text-gray-700">
+                  Acepto todos los términos y condiciones descritos anteriormente
+                </span>
+              </label>
 
-            <label
-              className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                consentChoice === 'reject'
-                  ? 'border-red-500 bg-red-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => setConsentChoice('reject')}
-            >
-              <div className={`mt-0.5 h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
-                consentChoice === 'reject'
-                  ? 'border-red-500 bg-red-500'
-                  : 'border-gray-300'
-              }`}>
-                {consentChoice === 'reject' && (
-                  <CheckCircle2 className="h-4 w-4 text-white" />
-                )}
-              </div>
-              <span className="text-sm text-gray-700">
-                No acepto los términos y deseo abandonar la plataforma
-              </span>
-            </label>
+              <label
+                className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                  consentChoice === 'reject'
+                    ? 'border-red-500 bg-red-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setConsentChoice('reject')}
+              >
+                <div className={`mt-0.5 h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                  consentChoice === 'reject'
+                    ? 'border-red-500 bg-red-500'
+                    : 'border-gray-300'
+                }`}>
+                  {consentChoice === 'reject' && (
+                    <CheckCircle2 className="h-4 w-4 text-white" />
+                  )}
+                </div>
+                <span className="text-sm text-gray-700">
+                  No acepto los términos y deseo abandonar la plataforma
+                </span>
+              </label>
+            </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0 border-t pt-4">
             <Button
               onClick={consentChoice === 'accept' ? handleConsentAccept : handleConsentReject}
               disabled={!consentChoice}
-              className={
+              className={`w-full ${
                 consentChoice === 'accept'
                   ? 'bg-blue-600 hover:bg-blue-700'
                   : consentChoice === 'reject'
                   ? 'bg-red-600 hover:bg-red-700'
                   : ''
-              }
+              }`}
             >
               {consentChoice === 'accept'
                 ? 'Continuar'
