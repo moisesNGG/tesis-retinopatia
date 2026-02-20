@@ -5,18 +5,17 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instalar dependencias del sistema (incluyendo OpenCV deps para ultralytics + git-lfs)
+# Instalar dependencias del sistema (incluyendo OpenCV deps para ultralytics y git-lfs)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    wget \
     python3 \
     python3-pip \
     libgl1 \
     libglib2.0-0 \
     git \
     git-lfs \
-    && git lfs install \
     && ln -s /usr/bin/python3 /usr/bin/python \
+    && git lfs install \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar archivos de backend
@@ -26,30 +25,13 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Copiar código del backend
 COPY backend/ .
 
-# Copiar pesos de modelos de IA (pueden ser LFS pointers en Railway)
+# Copiar pesos de modelos de IA (con railway up se suben los binarios reales)
 COPY backend/models_weights/ /app/models_weights/
 
-# Resolver LFS pointers usando el .git directory que Railway provee
-# Railway clona el repo en el build context, asi que usamos eso
-COPY .git/ /tmp/repo/.git/
-COPY .gitattributes /tmp/repo/.gitattributes
-RUN echo "[LFS RESOLVE] Verificando y resolviendo archivos LFS..." && \
-    cd /tmp/repo && \
-    git lfs install && \
-    git config lfs.locksverify false && \
-    FIRST_FILE="/app/models_weights/densenet121_ea/best_model.pth" && \
-    FIRST_SIZE=$(stat -c%s "$FIRST_FILE" 2>/dev/null || echo "0") && \
-    if [ "$FIRST_SIZE" -lt 1000 ]; then \
-        echo "  [LFS] Archivos son pointers, descargando con git lfs pull..." && \
-        git checkout HEAD -- backend/models_weights/ 2>/dev/null || true && \
-        git lfs pull --include="backend/models_weights/**" 2>&1 && \
-        cp -r /tmp/repo/backend/models_weights/* /app/models_weights/ && \
-        echo "  [OK] Archivos LFS descargados"; \
-    else \
-        echo "  [OK] Archivos ya son binarios reales"; \
-    fi && \
-    rm -rf /tmp/repo && \
-    echo "[MODEL CHECK] Verificando tamanios finales:" && \
+# Verificar que los modelos son binarios reales (no LFS pointers)
+# Si son pointers, FALLA el build para evitar deploys rotos
+RUN echo "[MODEL CHECK] Verificando archivos de modelos..." && \
+    FAIL=0 && \
     for f in /app/models_weights/densenet121_ea/best_model.pth \
              /app/models_weights/efficientnet_b0_ea/best_model.pth \
              /app/models_weights/resnet50_ea/best_model.pth \
@@ -57,11 +39,26 @@ RUN echo "[LFS RESOLVE] Verificando y resolviendo archivos LFS..." && \
              /app/models_weights/yolov8x_cls/best.pt; do \
         if [ -f "$f" ]; then \
             SIZE=$(stat -c%s "$f"); \
-            echo "  $f -> ${SIZE} bytes"; \
+            echo "  [INFO] $f -> ${SIZE} bytes"; \
+            if [ "$SIZE" -lt 10000 ]; then \
+                echo "  [ERROR] $f es un LFS pointer (${SIZE} bytes). Usa 'railway up' desde local."; \
+                FAIL=1; \
+            else \
+                echo "  [OK] $f es un archivo binario real"; \
+            fi; \
         else \
-            echo "  [WARN] $f NO encontrado"; \
+            echo "  [ERROR] $f NO encontrado"; \
+            FAIL=1; \
         fi; \
-    done
+    done && \
+    if [ "$FAIL" = "1" ]; then \
+        echo ""; \
+        echo "========================================"; \
+        echo "[FATAL] Modelos no son binarios reales."; \
+        echo "Despliega con: railway up"; \
+        echo "========================================"; \
+        exit 1; \
+    fi
 
 # Copiar frontend pre-compilado desde la carpeta public (ya compilado localmente)
 COPY public/ /app/public/

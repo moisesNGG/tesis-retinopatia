@@ -249,7 +249,7 @@ const Proceso = () => {
                     {consentAccepted && (
                       <p className="text-xs text-green-600 mt-2 flex items-center justify-center gap-1">
                         <ShieldCheck className="h-3 w-3" />
-                        Terminos y condiciones aceptados
+                        Términos y condiciones aceptados
                       </p>
                     )}
                     <input
@@ -441,7 +441,7 @@ const Proceso = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
               <ShieldCheck className="h-6 w-6 text-blue-600" />
-              Terminos y Condiciones de Uso
+              Términos y Condiciones de Uso
             </DialogTitle>
           </DialogHeader>
 
@@ -453,17 +453,17 @@ const Proceso = () => {
                   Finalidad y alcance del sistema
                 </h3>
                 <p>
-                  RETINAIA es una plataforma de investigacion en inteligencia artificial aplicada al analisis de imagenes medicas. Su proposito es evaluar el desempeno de modelos de aprendizaje profundo en la clasificacion multietapa de retinopatia diabetica dentro de un entorno experimental. Se trata de una herramienta metodologica para validacion tecnica y analisis comparativo de algoritmos. No es un producto sanitario certificado ni esta habilitada para uso clinico. Su utilizacion se limita a contextos academicos y de investigacion.
+                  RETINAIA es una plataforma de investigación en inteligencia artificial aplicada al análisis de imágenes médicas. Su propósito es evaluar el desempeño de modelos de aprendizaje profundo en la clasificación multietapa de retinopatía diabética dentro de un entorno experimental. Se trata de una herramienta metodológica para validación técnica y análisis comparativo de algoritmos. No es un producto sanitario certificado ni está habilitada para uso clínico. Su utilización se limita a contextos académicos y de investigación.
                 </p>
               </div>
 
               {/* Seccion 2 */}
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2 text-base">
-                  Privacidad, tratamiento y uso de imagenes
+                  Privacidad, tratamiento y uso de imágenes
                 </h3>
                 <p>
-                  Las imagenes cargadas se procesan unicamente durante la sesion activa para generar un resultado inmediato. No se almacenan de forma permanente ni se integran en bases de datos. El tratamiento se realiza bajo principios de confidencialidad, minimizacion de datos y uso restringido al proposito declarado. El usuario declara contar con autorizacion para utilizar las imagenes proporcionadas. La plataforma respeta estandares eticos aplicables a la investigacion con datos medicos.
+                  Las imágenes cargadas se procesan únicamente durante la sesión activa para generar un resultado inmediato. No se almacenan de forma permanente ni se integran en bases de datos. El tratamiento se realiza bajo principios de confidencialidad, minimización de datos y uso restringido al propósito declarado. El usuario declara contar con autorización para utilizar las imágenes proporcionadas. La plataforma respeta estándares éticos aplicables a la investigación con datos médicos.
                 </p>
               </div>
 
@@ -473,7 +473,7 @@ const Proceso = () => {
                   Advertencias y limitaciones de responsabilidad
                 </h3>
                 <p>
-                  Los resultados corresponden a estimaciones algoritmicas sujetas a posibles margenes de error. No constituyen diagnostico medico ni reemplazan la evaluacion de un profesional de la salud. La plataforma no emite recomendaciones clinicas ni debe utilizarse para la toma de decisiones medicas. El usuario reconoce el caracter experimental del sistema y sus limitaciones tecnicas. El uso de la herramienta implica la aceptacion de estas condiciones.
+                  Los resultados corresponden a estimaciones algorítmicas sujetas a posibles márgenes de error. No constituyen diagnóstico médico ni reemplazan la evaluación de un profesional de la salud. La plataforma no emite recomendaciones clínicas ni debe utilizarse para la toma de decisiones médicas. El usuario reconoce el carácter experimental del sistema y sus limitaciones técnicas. El uso de la herramienta implica la aceptación de estas condiciones.
                 </p>
               </div>
             </div>
@@ -499,7 +499,7 @@ const Proceso = () => {
                 )}
               </div>
               <span className="text-sm text-gray-700">
-                Acepto todos los terminos y condiciones descritos anteriormente
+                Acepto todos los términos y condiciones descritos anteriormente
               </span>
             </label>
 
@@ -521,7 +521,7 @@ const Proceso = () => {
                 )}
               </div>
               <span className="text-sm text-gray-700">
-                No acepto los terminos y deseo abandonar la plataforma
+                No acepto los términos y deseo abandonar la plataforma
               </span>
             </label>
           </div>
@@ -542,7 +542,7 @@ const Proceso = () => {
                 ? 'Continuar'
                 : consentChoice === 'reject'
                 ? 'Abandonar plataforma'
-                : 'Selecciona una opcion'}
+                : 'Selecciona una opción'}
             </Button>
           </DialogFooter>
         </DialogContent>
