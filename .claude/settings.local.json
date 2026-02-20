@@ -17,7 +17,15 @@
       "Bash(pip install:*)",
       "Bash(set:*)",
       "Bash(python -m uvicorn:*)",
-      "Bash(export MODELS_DIR=\"C:/Users/moise/Documents/git-2/tesis-rinopatia/backend/models_weights\")"
+      "Bash(export MODELS_DIR=\"C:/Users/moise/Documents/git-2/tesis-rinopatia/backend/models_weights\")",
+      "Bash(curl:*)",
+      "Bash(python -m json.tool:*)",
+      "Bash(git lfs:*)",
+      "Bash(xxd:*)",
+      "Bash(git push:*)",
+      "Bash(railway --version:*)",
+      "Bash(npm install:*)",
+      "Bash(railway login:*)"
     ],
     "deny": [],
     "ask": []

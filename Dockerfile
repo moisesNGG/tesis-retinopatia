@@ -26,11 +26,30 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Copiar código del backend
 COPY backend/ .
 
-# Copiar pesos de modelos de IA
+# Copiar pesos de modelos de IA (pueden ser LFS pointers en Railway)
 COPY backend/models_weights/ /app/models_weights/
 
-# Verificar que los archivos de modelos son binarios reales (no LFS pointers)
-RUN echo "[MODEL CHECK] Verificando archivos de modelos..." && \
+# Resolver LFS pointers usando el .git directory que Railway provee
+# Railway clona el repo en el build context, asi que usamos eso
+COPY .git/ /tmp/repo/.git/
+COPY .gitattributes /tmp/repo/.gitattributes
+RUN echo "[LFS RESOLVE] Verificando y resolviendo archivos LFS..." && \
+    cd /tmp/repo && \
+    git lfs install && \
+    git config lfs.locksverify false && \
+    FIRST_FILE="/app/models_weights/densenet121_ea/best_model.pth" && \
+    FIRST_SIZE=$(stat -c%s "$FIRST_FILE" 2>/dev/null || echo "0") && \
+    if [ "$FIRST_SIZE" -lt 1000 ]; then \
+        echo "  [LFS] Archivos son pointers, descargando con git lfs pull..." && \
+        git checkout HEAD -- backend/models_weights/ 2>/dev/null || true && \
+        git lfs pull --include="backend/models_weights/**" 2>&1 && \
+        cp -r /tmp/repo/backend/models_weights/* /app/models_weights/ && \
+        echo "  [OK] Archivos LFS descargados"; \
+    else \
+        echo "  [OK] Archivos ya son binarios reales"; \
+    fi && \
+    rm -rf /tmp/repo && \
+    echo "[MODEL CHECK] Verificando tamanios finales:" && \
     for f in /app/models_weights/densenet121_ea/best_model.pth \
              /app/models_weights/efficientnet_b0_ea/best_model.pth \
              /app/models_weights/resnet50_ea/best_model.pth \
@@ -38,13 +57,7 @@ RUN echo "[MODEL CHECK] Verificando archivos de modelos..." && \
              /app/models_weights/yolov8x_cls/best.pt; do \
         if [ -f "$f" ]; then \
             SIZE=$(stat -c%s "$f"); \
-            echo "  [INFO] $f -> ${SIZE} bytes"; \
-            if [ "$SIZE" -lt 1000 ]; then \
-                echo "  [ERROR] $f parece ser un LFS pointer (muy pequeno: ${SIZE} bytes)"; \
-                echo "  [ERROR] Contenido:"; cat "$f"; echo ""; \
-            else \
-                echo "  [OK] $f es un archivo binario real"; \
-            fi; \
+            echo "  $f -> ${SIZE} bytes"; \
         else \
             echo "  [WARN] $f NO encontrado"; \
         fi; \

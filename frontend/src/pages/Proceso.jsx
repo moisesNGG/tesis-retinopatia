@@ -6,7 +6,9 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { Progress } from '../components/ui/progress';
 import { Badge } from '../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Upload, Image as ImageIcon, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
+import { ScrollArea } from '../components/ui/scroll-area';
+import { Upload, Image as ImageIcon, AlertCircle, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 import { pagesAPI, predictionAPI } from '../services/api';
 import Hero from '../components/sections/Hero';
 import ContentSection from '../components/sections/ContentSection';
@@ -27,6 +29,9 @@ const Proceso = () => {
   const [error, setError] = useState(null);
   const [pageData, setPageData] = useState(null);
   const [progressValue, setProgressValue] = useState(0);
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [showConsentDialog, setShowConsentDialog] = useState(false);
+  const [consentChoice, setConsentChoice] = useState(null); // 'accept' | 'reject' | null
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -44,6 +49,30 @@ const Proceso = () => {
         subtitle: 'Sube una imagen de fondo de ojo para detectar signos de retinopatia diabetica'
       });
     }
+  };
+
+  const handleUploadClick = () => {
+    if (consentAccepted) {
+      fileInputRef.current?.click();
+    } else {
+      setConsentChoice(null);
+      setShowConsentDialog(true);
+    }
+  };
+
+  const handleConsentAccept = () => {
+    setConsentAccepted(true);
+    setShowConsentDialog(false);
+    setConsentChoice(null);
+    // Abrir selector de archivo tras aceptar
+    setTimeout(() => fileInputRef.current?.click(), 100);
+  };
+
+  const handleConsentReject = () => {
+    setShowConsentDialog(false);
+    setConsentChoice(null);
+    // Redirigir al inicio
+    window.location.href = '/';
   };
 
   const handleFileSelect = (event) => {
@@ -207,7 +236,7 @@ const Proceso = () => {
               <div className="space-y-6">
                 {!preview ? (
                   <div
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={handleUploadClick}
                     className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-500 transition-colors cursor-pointer"
                   >
                     <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -217,6 +246,12 @@ const Proceso = () => {
                     <p className="text-sm text-gray-500">
                       o arrastra y suelta aqui
                     </p>
+                    {consentAccepted && (
+                      <p className="text-xs text-green-600 mt-2 flex items-center justify-center gap-1">
+                        <ShieldCheck className="h-3 w-3" />
+                        Terminos y condiciones aceptados
+                      </p>
+                    )}
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -398,6 +433,120 @@ const Proceso = () => {
           )}
         </div>
       </div>
+      {/* Dialog de Consentimiento */}
+      <Dialog open={showConsentDialog} onOpenChange={(open) => {
+        if (!open) setShowConsentDialog(false);
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <ShieldCheck className="h-6 w-6 text-blue-600" />
+              Terminos y Condiciones de Uso
+            </DialogTitle>
+          </DialogHeader>
+
+          <ScrollArea className="flex-1 pr-4" style={{ maxHeight: '55vh' }}>
+            <div className="space-y-6 text-sm text-gray-700 leading-relaxed">
+              {/* Seccion 1 */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2 text-base">
+                  Finalidad y alcance del sistema
+                </h3>
+                <p>
+                  RETINAIA es una plataforma de investigacion en inteligencia artificial aplicada al analisis de imagenes medicas. Su proposito es evaluar el desempeno de modelos de aprendizaje profundo en la clasificacion multietapa de retinopatia diabetica dentro de un entorno experimental. Se trata de una herramienta metodologica para validacion tecnica y analisis comparativo de algoritmos. No es un producto sanitario certificado ni esta habilitada para uso clinico. Su utilizacion se limita a contextos academicos y de investigacion.
+                </p>
+              </div>
+
+              {/* Seccion 2 */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2 text-base">
+                  Privacidad, tratamiento y uso de imagenes
+                </h3>
+                <p>
+                  Las imagenes cargadas se procesan unicamente durante la sesion activa para generar un resultado inmediato. No se almacenan de forma permanente ni se integran en bases de datos. El tratamiento se realiza bajo principios de confidencialidad, minimizacion de datos y uso restringido al proposito declarado. El usuario declara contar con autorizacion para utilizar las imagenes proporcionadas. La plataforma respeta estandares eticos aplicables a la investigacion con datos medicos.
+                </p>
+              </div>
+
+              {/* Seccion 3 */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2 text-base">
+                  Advertencias y limitaciones de responsabilidad
+                </h3>
+                <p>
+                  Los resultados corresponden a estimaciones algoritmicas sujetas a posibles margenes de error. No constituyen diagnostico medico ni reemplazan la evaluacion de un profesional de la salud. La plataforma no emite recomendaciones clinicas ni debe utilizarse para la toma de decisiones medicas. El usuario reconoce el caracter experimental del sistema y sus limitaciones tecnicas. El uso de la herramienta implica la aceptacion de estas condiciones.
+                </p>
+              </div>
+            </div>
+          </ScrollArea>
+
+          {/* Opciones de consentimiento */}
+          <div className="border-t pt-4 space-y-3">
+            <label
+              className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                consentChoice === 'accept'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => setConsentChoice('accept')}
+            >
+              <div className={`mt-0.5 h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                consentChoice === 'accept'
+                  ? 'border-blue-500 bg-blue-500'
+                  : 'border-gray-300'
+              }`}>
+                {consentChoice === 'accept' && (
+                  <CheckCircle2 className="h-4 w-4 text-white" />
+                )}
+              </div>
+              <span className="text-sm text-gray-700">
+                Acepto todos los terminos y condiciones descritos anteriormente
+              </span>
+            </label>
+
+            <label
+              className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                consentChoice === 'reject'
+                  ? 'border-red-500 bg-red-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => setConsentChoice('reject')}
+            >
+              <div className={`mt-0.5 h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                consentChoice === 'reject'
+                  ? 'border-red-500 bg-red-500'
+                  : 'border-gray-300'
+              }`}>
+                {consentChoice === 'reject' && (
+                  <CheckCircle2 className="h-4 w-4 text-white" />
+                )}
+              </div>
+              <span className="text-sm text-gray-700">
+                No acepto los terminos y deseo abandonar la plataforma
+              </span>
+            </label>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={consentChoice === 'accept' ? handleConsentAccept : handleConsentReject}
+              disabled={!consentChoice}
+              className={
+                consentChoice === 'accept'
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : consentChoice === 'reject'
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : ''
+              }
+            >
+              {consentChoice === 'accept'
+                ? 'Continuar'
+                : consentChoice === 'reject'
+                ? 'Abandonar plataforma'
+                : 'Selecciona una opcion'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
