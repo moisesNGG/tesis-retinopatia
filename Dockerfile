@@ -25,13 +25,12 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Copiar código del backend
 COPY backend/ .
 
-# Copiar pesos de modelos de IA (con railway up se suben los binarios reales)
+# Copiar pesos de modelos (pueden ser binarios reales o LFS pointers)
 COPY backend/models_weights/ /app/models_weights/
 
-# Verificar que los modelos son binarios reales (no LFS pointers)
-# Si son pointers, FALLA el build para evitar deploys rotos
+# Si los modelos son LFS pointers, descargar los binarios reales desde GitHub
 RUN echo "[MODEL CHECK] Verificando archivos de modelos..." && \
-    FAIL=0 && \
+    NEEDS_DOWNLOAD=0 && \
     for f in /app/models_weights/densenet121_ea/best_model.pth \
              /app/models_weights/efficientnet_b0_ea/best_model.pth \
              /app/models_weights/resnet50_ea/best_model.pth \
@@ -39,25 +38,53 @@ RUN echo "[MODEL CHECK] Verificando archivos de modelos..." && \
              /app/models_weights/yolov8x_cls/best.pt; do \
         if [ -f "$f" ]; then \
             SIZE=$(stat -c%s "$f"); \
-            echo "  [INFO] $f -> ${SIZE} bytes"; \
             if [ "$SIZE" -lt 10000 ]; then \
-                echo "  [ERROR] $f es un LFS pointer (${SIZE} bytes). Usa 'railway up' desde local."; \
-                FAIL=1; \
+                echo "  [LFS] $f es un pointer (${SIZE} bytes) - necesita descarga"; \
+                NEEDS_DOWNLOAD=1; \
             else \
-                echo "  [OK] $f es un archivo binario real"; \
+                echo "  [OK] $f es binario real (${SIZE} bytes)"; \
             fi; \
         else \
-            echo "  [ERROR] $f NO encontrado"; \
+            echo "  [WARN] $f no encontrado - necesita descarga"; \
+            NEEDS_DOWNLOAD=1; \
+        fi; \
+    done && \
+    if [ "$NEEDS_DOWNLOAD" = "1" ]; then \
+        echo "" && \
+        echo "[INFO] Descargando modelos desde GitHub LFS..." && \
+        cd /tmp && \
+        GIT_LFS_SKIP_SMUDGE=0 git clone --depth 1 --filter=blob:none --sparse https://github.com/moisesNGG/tesis-retinopatia.git repo && \
+        cd repo && \
+        git sparse-checkout set backend/models_weights && \
+        git lfs pull --include="backend/models_weights/**" && \
+        echo "[INFO] Copiando modelos descargados..." && \
+        cp -r backend/models_weights/* /app/models_weights/ && \
+        cd / && rm -rf /tmp/repo && \
+        echo "[OK] Modelos descargados exitosamente"; \
+    else \
+        echo "[OK] Todos los modelos son binarios reales, no se necesita descarga"; \
+    fi
+
+# Verificacion final: asegurar que todos los modelos son binarios reales
+RUN echo "[FINAL CHECK] Verificando modelos finales..." && \
+    FAIL=0 && \
+    for f in /app/models_weights/densenet121_ea/best_model.pth \
+             /app/models_weights/efficientnet_b0_ea/best_model.pth \
+             /app/models_weights/resnet50_ea/best_model.pth \
+             /app/models_weights/vit_b16/vit_b16_best.pt \
+             /app/models_weights/yolov8x_cls/best.pt; do \
+        SIZE=$(stat -c%s "$f" 2>/dev/null || echo 0); \
+        echo "  $f -> ${SIZE} bytes"; \
+        if [ "$SIZE" -lt 10000 ]; then \
+            echo "  [ERROR] $f sigue siendo invalido"; \
             FAIL=1; \
         fi; \
     done && \
     if [ "$FAIL" = "1" ]; then \
-        echo ""; \
-        echo "========================================"; \
-        echo "[FATAL] Modelos no son binarios reales."; \
-        echo "Despliega con: railway up"; \
-        echo "========================================"; \
+        echo "[FATAL] No se pudieron obtener los modelos."; \
         exit 1; \
+    else \
+        echo "[OK] Todos los modelos verificados correctamente"; \
     fi
 
 # Copiar frontend pre-compilado desde la carpeta public (ya compilado localmente)
